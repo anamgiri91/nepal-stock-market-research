@@ -2,7 +2,7 @@
 """Scrape datewise NEPSE index data from merolagani.com.
 
 Default range:
-    2015-01-01 through 2025-06-03
+    2015-01-01 through 2026-06-03
 
 The merolagani Indices page is ASP.NET WebForms. Its date search can be brittle
 when called outside the browser, so this scraper pages through the default
@@ -16,6 +16,7 @@ import csv
 import html
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -163,8 +164,19 @@ def request_text(
     if data is not None:
         encoded = urllib.parse.urlencode(data).encode("utf-8")
     request = urllib.request.Request(BASE_URL, data=encoded, method="POST" if data else "GET")
-    with opener.open(request, timeout=60) as response:
-        return response.read().decode("utf-8", errors="replace")
+    last_error: Exception | None = None
+    for attempt in range(1, 5):
+        try:
+            with opener.open(request, timeout=90) as response:
+                return response.read().decode("utf-8", errors="replace")
+        except (TimeoutError, urllib.error.URLError) as error:
+            last_error = error
+            if attempt == 4:
+                break
+            wait_seconds = attempt * 3
+            print(f"Request failed on attempt {attempt}; retrying in {wait_seconds}s...")
+            time.sleep(wait_seconds)
+    raise RuntimeError(f"Could not fetch {BASE_URL}: {last_error}")
 
 
 def build_pager_form(parser: MerolaganiParser) -> dict[str, str]:
@@ -259,11 +271,11 @@ def write_csv(rows: list[IndexRow], output: Path) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Scrape NEPSE index history from merolagani.com")
     parser.add_argument("--start", default="2015-01-01", help="Start date in YYYY-MM-DD")
-    parser.add_argument("--end", default="2025-06-03", help="End date in YYYY-MM-DD")
+    parser.add_argument("--end", default="2026-06-03", help="End date in YYYY-MM-DD")
     parser.add_argument("--delay", type=float, default=0.4, help="Seconds to pause between pages")
     parser.add_argument(
         "--output",
-        default="nepse_index_2015-01-01_to_2025-06-03.csv",
+        default="nepse_index_2015-01-01_to_2026-06-03.csv",
         help="CSV output path",
     )
     return parser.parse_args()
