@@ -86,7 +86,12 @@ Evaluation metrics:
 ├── data_vov_methods.csv
 ├── table_garch_model_selection.csv
 ├── table_method_comparison.csv
+├── table_method_comparison_raw_scale_warning.csv
 ├── table_method_comparison_by_regime.csv
+├── table_method_scale_parameters.csv
+├── table_regime_punchline.csv
+├── garch_model_selection_rationale.txt
+├── discussion_section.md
 ├── 02_descriptive_analysis.png
 ├── nepse_volatility_analysis.png
 ├── notebooks/
@@ -134,3 +139,11 @@ Next steps:
 - Complete spillover analysis and Granger causality tests
 - Add copula dependence analysis
 - Write the literature review and final empirical paper
+
+## Current Interpretation Notes
+
+The benchmark-comparison notebook now reports both raw and scale-aligned comparisons. The raw table is retained as a diagnostic because STVV, EMVV-adapted, and MIVV-adapted are not naturally expressed in the same units. The main comparison table uses an affine calibration of each method to the realized volatility-of-volatility benchmark before calculating MAE, MSE, MAPE, and WMAPE. Spearman correlations remain unchanged because they measure rank-order agreement.
+
+GJR-GARCH(1,1) currently has the lowest AIC/BIC among the fitted GARCH-family models. The paper should not hide this. The reason to keep GARCH(1,1) and EGARCH(1,1) in the MIVV-adapted backbone is interpretability: GARCH is the canonical volatility proxy, while EGARCH captures asymmetric volatility responses. GJR-GARCH is retained as a model-selection and robustness benchmark.
+
+The most important substantive tension is that MIVV-adapted, the main methodological contribution, has weaker rank-order agreement with the realized VoV benchmark than STVV/EMVV-adapted in the current estimates. That does not invalidate the project; it becomes the research question in sharper form: either GARCH conditional volatility is an imperfect substitute for implied volatility in frontier markets, or the realized VoV benchmark is noisy and overreacts to local trading gaps and stress episodes.
