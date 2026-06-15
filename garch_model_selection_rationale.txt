@@ -1,0 +1,1 @@
+Although GJR-GARCH(1,1) achieves the lowest AIC/BIC in this sample, the main MIVV-adapted analysis uses GARCH(1,1) and EGARCH(1,1) as the interpretable volatility-proxy backbone. GARCH(1,1) is the canonical conditional-volatility benchmark, while EGARCH(1,1) captures asymmetric responses to negative shocks. GJR-GARCH(1,1) is retained as a model-selection and robustness benchmark.
