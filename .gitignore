@@ -45,3 +45,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Legacy intermediate data
+data_*.csv
+nepse_volatility_analysis.csv
