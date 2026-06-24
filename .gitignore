@@ -1,0 +1,47 @@
+# === PRIVATE RESULTS — DO NOT COMMIT ===
+# See ~/Desktop/NEPSE_Results_Private/POLICY.md for details
+
+# Result tables
+table_*.csv
+
+# Figures
+*.png
+
+# External market data (Yahoo Finance ToS)
+data/data_india_vix.csv
+data/data_nifty50_ohlcv.csv
+data/data_sp500_vix.csv
+data/data_aligned_nepse_india.csv
+
+# Derived/computed datasets
+data/data_garch_expanded.csv
+data/data_range_based_volatility.csv
+
+# Draft prose
+discussion_section.md
+analysis_results.md
+
+# GARCH rationale
+garch_model_selection_rationale.txt
+
+# === STANDARD IGNORES ===
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
