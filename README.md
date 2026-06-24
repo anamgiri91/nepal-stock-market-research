@@ -6,95 +6,76 @@
 
 ## Abstract
 
-This project studies whether volatility estimation methods originally designed for options-rich markets can be adapted for a frontier market without listed derivatives. The empirical case is the Nepal Stock Exchange (NEPSE), using daily index data from 2015-01-01 through 2026-06-03. Because NEPSE does not have a liquid options market or a VVIX-style benchmark, the project constructs realized volatility-of-volatility benchmarks and compares historical, hybrid-adapted, and GARCH-family model-based estimates.
+This project studies whether volatility estimation methods originally designed for options-rich markets can be adapted for a frontier market without listed derivatives. The empirical case is the Nepal Stock Exchange (NEPSE), using daily OHLCV data from 2010-01-03 through 2026-06-12 (3,760 observations). The project compares five families of volatility estimators: close-to-close historical, range-based (Parkinson, Garman-Klass, Rogers-Satchell, Yang-Zhang), GARCH-family (9 specifications), HAR-RV, and India VIX as a cross-border implied volatility proxy.
 
-## Core Idea
+## Key Findings
 
-Options-rich markets can use implied-volatility and option-based volatility-of-volatility measures. NEPSE does not have a liquid derivatives/options market, so this project tests whether those methods can be adapted using realized volatility and GARCH-family proxies.
-
-## Research Question
-
-Can volatility and volatility-of-volatility methods developed for derivatives-rich markets be meaningfully adapted to a frontier equity market without listed options?
-
-## Main Contribution
-
-The key methodological contribution is the **MIVV-adapted** approach: replacing option-implied volatility with GARCH conditional volatility as a proxy for latent implied volatility in a no-derivatives market.
+1. **Range-based estimators significantly outperform GARCH** in out-of-sample forecasting (Diebold-Mariano p < 0.01)
+2. **Error distribution >> variance specification**: Skewed-t vs Gaussian (AIC gap ~400) matters 20× more than GARCH vs EGARCH vs GJR (~20)
+3. **India VIX is NOT a viable implied volatility proxy** for NEPSE (R² = 1.1% at 1-day horizon, insignificant at longer horizons)
+4. **GJR-GARCH(1,1)-SkewT** is the best in-sample GARCH model (AIC = 11,327.8)
+5. **HAR-RV** captures heterogeneous volatility (in-sample R² = 22.5%)
 
 ## Data
 
-Current local NEPSE dataset:
+### NEPSE Data
+- File: `nepse_index_history.csv`
+- Date range: 2010-01-03 to 2026-06-12
+- Observations: 3,760
+- Columns: `Date`, `Open`, `High`, `Low`, `Close`, `Change`, `Percent_Change`, `Turnover`
+- Genuine OHLC (H ≠ L): from 2016-06-06 onward (2,296 observations)
 
-- File: `nepse_index_2015-01-01_to_2026-06-03.csv`
-- Date range: 2015-01-01 to 2026-06-03
-- Scraped rows: 2,596 observations
-- Columns: `date_ad`, `index_value`, `absolute_change`, `percentage_change`
+### External Data (downloaded via `scripts/download_external_data.py`)
+- India VIX: 4,036 observations (2010–2026)
+- NIFTY 50 OHLCV: 4,037 observations
+- S&P 500 VIX: 4,137 observations
+- Aligned NEPSE–India intersection: 2,916 common trading dates
 
-The original research plan expected 2,598 records. The current scraper returned 2,596 records through 2026-06-03, so the notebooks report the observed count directly and keep the data audit transparent.
+## Scripts
 
-Planned comparison datasets:
+All analysis is implemented as standalone Python scripts in `scripts/`:
 
-- India's NIFTY VIX
-- S&P 500 VIX
-- Nepal Rastra Bank T-bill rates
+| Script | Purpose |
+|---|---|
+| `download_external_data.py` | Download India VIX, NIFTY 50, S&P 500 VIX via yfinance |
+| `compute_range_volatility.py` | Parkinson, Garman-Klass, Rogers-Satchell, Yang-Zhang estimators |
+| `stationarity_tests.py` | ADF, KPSS, ARCH-LM, Ljung-Box, Zivot-Andrews |
+| `expanded_garch.py` | 9 GARCH specs (3 models × 3 distributions) + diagnostics |
+| `oos_evaluation.py` | Out-of-sample forecast evaluation, Mincer-Zarnowitz, DM tests |
+| `spillover_analysis.py` | Granger causality, bivariate VAR, India VIX proxy regressions |
+| `robustness_checks.py` | Sub-sample, alt windows, alt GARCH orders, HAR-RV, bootstrap DM |
 
-These are not required for the core NEPSE volatility models, but they are needed for the spillover and risk-free-rate sections.
+### Legacy Notebooks (in `notebooks/`)
 
-## Methodology
-
-The project adapts Yuan-style volatility-of-volatility methods as follows:
-
-| Method | Original setting | NEPSE adaptation |
-|---|---|---|
-| STVV | Historical volatility dynamics | Directly computed from NEPSE returns |
-| EMVV | Uses VIX log-return inputs | Replaces VIX input with NEPSE realized-volatility changes |
-| MIVV | Uses option-implied volatility | Replaces implied volatility with GARCH conditional volatility |
-| RNVV | Requires options data | Replaced by GARCH, EGARCH, and GJR-GARCH model-based estimates |
-
-Primary benchmark:
-
-`Realized volatility-of-volatility = rolling variance of 30-day realized volatility`
-
-Evaluation metrics:
-
-- MAE
-- MSE
-- MAPE
-- WMAPE
-- Spearman correlation
-- Low, medium, and high volatility-regime comparisons
-
-## Notebook Roadmap
-
-1. `01_data_cleaning_nepse.ipynb` - clean NEPSE index data, audit duplicates and missing trading days.
-2. `02_descriptive_analysis.ipynb` - returns, summary statistics, ARCH test, event-period charts.
-3. `03_garch_models.ipynb` - GARCH(1,1), EGARCH(1,1), and GJR-GARCH(1,1).
-4. `04_volatility_of_volatility_methods.ipynb` - STVV, EMVV-adapted, MIVV-adapted, and realized VoV benchmark.
-5. `05_benchmark_comparison.ipynb` - MAE, MSE, MAPE, WMAPE, Spearman correlation, volatility regimes.
-6. `06_spillover_analysis.ipynb` - NIFTY VIX / VIX integration and Granger causality template.
-7. `07_robustness_checks.ipynb` - rolling-window, pre/post-COVID, and distributional robustness.
+| Notebook | Status |
+|---|---|
+| `01_data_cleaning_nepse.ipynb` | Original — superseded by new OHLCV dataset |
+| `02_descriptive_analysis.ipynb` | Original — supplemented by `stationarity_tests.py` |
+| `03_garch_models.ipynb` | Original (3 specs) — superseded by `expanded_garch.py` (9 specs) |
+| `04_volatility_of_volatility_methods.ipynb` | Original STVV/EMVV/MIVV analysis |
+| `05_benchmark_comparison.ipynb` | Original benchmark tables |
+| `06_spillover_analysis.ipynb` | Stub — superseded by `spillover_analysis.py` |
+| `07_robustness_checks.ipynb` | Stub — superseded by `robustness_checks.py` |
 
 ## Repository Layout
 
 ```text
 .
 ├── README.md
-├── README_research_project.md
-├── nepse_index_2015-01-01_to_2026-06-03.csv
-├── data_nepse_cleaned.csv
-├── data_nepse_returns.csv
-├── data_garch_volatility_estimates.csv
-├── data_vov_methods.csv
-├── table_garch_model_selection.csv
-├── table_method_comparison.csv
-├── table_method_comparison_raw_scale_warning.csv
-├── table_method_comparison_by_regime.csv
-├── table_method_scale_parameters.csv
-├── table_regime_punchline.csv
-├── garch_model_selection_rationale.txt
-├── discussion_section.md
-├── 02_descriptive_analysis.png
-├── nepse_volatility_analysis.png
-├── notebooks/
+├── .gitignore
+├── requirements.txt
+├── nepse_index_history.csv          # NEPSE OHLCV (3,760 rows)
+├── scrape_nepse.py                  # OHLCV scraper (ShareSansar)
+├── scrape_nepse_indices.py          # Original close-only scraper
+├── scripts/
+│   ├── download_external_data.py
+│   ├── compute_range_volatility.py
+│   ├── stationarity_tests.py
+│   ├── expanded_garch.py
+│   ├── oos_evaluation.py
+│   ├── spillover_analysis.py
+│   └── robustness_checks.py
+├── notebooks/                       # Legacy Jupyter notebooks
 │   ├── 01_data_cleaning_nepse.ipynb
 │   ├── 02_descriptive_analysis.ipynb
 │   ├── 03_garch_models.ipynb
@@ -102,48 +83,78 @@ Evaluation metrics:
 │   ├── 05_benchmark_comparison.ipynb
 │   ├── 06_spillover_analysis.ipynb
 │   └── 07_robustness_checks.ipynb
-└── scrape_nepse_indices.py
+└── data/                            # Generated data (gitignored)
+    ├── data_india_vix.csv
+    ├── data_nifty50_ohlcv.csv
+    ├── data_sp500_vix.csv
+    ├── data_aligned_nepse_india.csv
+    ├── data_range_based_volatility.csv
+    └── data_garch_expanded.csv
 ```
 
 ## Reproducibility
 
-Recommended Python packages:
+### Setup
 
 ```bash
-pip install pandas numpy matplotlib scipy statsmodels arch nbformat nbclient ipykernel
+python3 -m venv .venv
+source .venv/bin/activate
+pip install pandas numpy matplotlib scipy statsmodels arch yfinance
 ```
 
-To refresh the NEPSE dataset:
+### Run All Analysis
 
 ```bash
-python scrape_nepse_indices.py --start 2015-01-01 --end 2026-06-03
+# 1. Download external data (requires internet)
+python scripts/download_external_data.py
+
+# 2. Compute range-based volatility
+python scripts/compute_range_volatility.py
+
+# 3. Stationarity tests
+python scripts/stationarity_tests.py
+
+# 4. Expanded GARCH models
+python scripts/expanded_garch.py
+
+# 5. Out-of-sample evaluation
+python scripts/oos_evaluation.py
+
+# 6. Spillover analysis
+python scripts/spillover_analysis.py
+
+# 7. Robustness checks
+python scripts/robustness_checks.py
 ```
 
-To rerun the notebooks, open them in Jupyter and execute in numerical order from `01` to `07`.
+### Refresh NEPSE Data
+
+```bash
+python scrape_nepse.py
+```
 
 ## Research Status
 
-Completed:
+### Completed
+- NEPSE daily OHLCV dataset (2010–2026, 3,760 observations)
+- Descriptive statistics, stationarity tests, ARCH-effect confirmation
+- Range-based volatility estimators (Parkinson, Garman-Klass, Rogers-Satchell, Yang-Zhang)
+- GARCH, EGARCH, GJR-GARCH × Normal, Student-t, Skewed-t (9 specifications)
+- HAR-RV model (Corsi, 2009)
+- Out-of-sample forecast evaluation with Diebold-Mariano tests
+- India VIX spillover analysis (Granger causality, VAR, predictive regressions)
+- Robustness checks (sub-sample, alternative windows/orders, bootstrap, alignment)
+- Paper draft (Sections 1–7 + references)
 
-- NEPSE daily index dataset through 2026-06-03
-- Data cleaning and audit notebook
-- Descriptive statistics and ARCH-effect test
-- GARCH, EGARCH, and GJR-GARCH model estimation
-- Adapted volatility-of-volatility methods
-- Benchmark comparison tables
-- Robustness and spillover-analysis notebook templates
+### Not Yet Done
+- NRB 91-day T-bill rate (for excess returns / Sharpe ratios)
+- Copula dependence analysis
+- Final paper formatting and submission
 
-Next steps:
+## Key Interpretation Notes
 
-- Add NIFTY VIX, S&P 500 VIX, and NRB T-bill datasets
-- Complete spillover analysis and Granger causality tests
-- Add copula dependence analysis
-- Write the literature review and final empirical paper
+GJR-GARCH(1,1)-SkewT has the lowest AIC (11,327.8) among all 9 GARCH specifications. However, the error distribution choice (Skewed-t vs Normal) matters approximately 20× more than the variance specification choice (GARCH vs EGARCH vs GJR) — an important finding for frontier market practitioners.
 
-## Current Interpretation Notes
+The most significant empirical result is that range-based estimators (Parkinson, Garman-Klass) significantly outperform all GARCH models in out-of-sample forecasting. This suggests that for NEPSE, the information content of intraday price extremes (OHLC) is more valuable than parametric volatility dynamics estimated from close prices alone.
 
-The benchmark-comparison notebook now reports both raw and scale-aligned comparisons. The raw table is retained as a diagnostic because STVV, EMVV-adapted, and MIVV-adapted are not naturally expressed in the same units. The main comparison table uses an affine calibration of each method to the realized volatility-of-volatility benchmark before calculating MAE, MSE, MAPE, and WMAPE. Spearman correlations remain unchanged because they measure rank-order agreement.
-
-GJR-GARCH(1,1) currently has the lowest AIC/BIC among the fitted GARCH-family models. The paper should not hide this. The reason to keep GARCH(1,1) and EGARCH(1,1) in the MIVV-adapted backbone is interpretability: GARCH is the canonical volatility proxy, while EGARCH captures asymmetric volatility responses. GJR-GARCH is retained as a model-selection and robustness benchmark.
-
-The most important substantive tension is that MIVV-adapted, the main methodological contribution, has weaker rank-order agreement with the realized VoV benchmark than STVV/EMVV-adapted in the current estimates. That does not invalidate the project; it becomes the research question in sharper form: either GARCH conditional volatility is an imperfect substitute for implied volatility in frontier markets, or the realized VoV benchmark is noisy and overreacts to local trading gaps and stress episodes.
+India VIX cannot serve as a forward-looking implied volatility proxy for NEPSE (Granger causality p = 0.97). Return spillover exists from NIFTY to NEPSE at lag ≥ 2, but this does not translate into volatility spillover.
