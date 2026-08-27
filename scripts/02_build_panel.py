@@ -96,38 +96,35 @@ def diagnose(p: pd.DataFrame, name: str):
     return viol
 
 
-TRADING_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
+from nepsevol.trading_calendar import detect_sessions
 
 
-def clean_trades_panel(p: pd.DataFrame, stale_threshold: float = 0.98) -> pd.DataFrame:
-    """Remove stale non-trading sessions from the daily cross-section archive.
+def clean_trades_panel(p: pd.DataFrame, stale_threshold: float = 0.90) -> pd.DataFrame:
+    """Keep only genuine trading sessions, detected from the data.
 
-    The archive contains files for Fridays and Saturdays, on which NEPSE does not trade. Those
-    files carry the previous session forward: 99.2% of Saturday closes and 87.5% of Friday closes
-    are identical to the prior dated file. Retained, they roughly double the measured zero-return
-    friction and insert non-events into every rolling window.
+    A fixed weekday filter is WRONG for this market. NEPSE traded Sunday-Thursday historically and
+    switched to Monday-Friday in April 2026, so a hard-coded Sun-Thu rule deletes genuine Friday
+    sessions and retains stale Sundays after the change -- contaminating precisely the window that
+    contains the widened price-band regime. It also silently keeps public holidays, on which the
+    archive carries the previous session forward.
 
-    Two passes: restrict to the Sunday-Thursday week, then drop any remaining date whose whole
-    cross-section is >= `stale_threshold` identical to the prior date.
+    Sessions are therefore identified by the staleness signature: a dated file whose cross-section
+    is >= `stale_threshold` identical to the prior file is a carried-forward record, not a session.
     """
-    q = p[p["date"].dt.day_name().isin(TRADING_DAYS)].copy()
-
-    piv = q.pivot_table(index="date", columns="symbol", values="close")
-    prev = piv.shift(1)
-    both = piv.notna() & prev.notna()
-    same = ((piv == prev) & both).sum(axis=1)
-    frac = same / both.sum(axis=1).replace(0, np.nan)
-    stale_dates = frac[frac >= stale_threshold].index
-    q = q[~q["date"].isin(stale_dates)]
+    sess = detect_sessions(p, stale_threshold=stale_threshold)
+    live = set(sess.index[sess.is_session])
+    q = p[p["date"].isin(live)].copy()
 
     n_days = q["date"].nunique()
     span = (q["date"].max() - q["date"].min()).days / 365.25
-    print(f"\nPANEL B - cleaned")
-    print(f"  weekday filter removed   {len(p) - len(p[p['date'].dt.day_name().isin(TRADING_DAYS)]):,} rows")
-    print(f"  stale dates dropped      {len(stale_dates)}")
-    print(f"  rows                     {len(q):,}")
-    print(f"  sessions                 {n_days}  ({q['date'].min().date()} -> {q['date'].max().date()})")
-    print(f"  sessions per year        {n_days/span:.0f}   (index reference: 222)")
+    dis = int(sess.rule_data_disagree.sum())
+    print(f"\nPANEL B - cleaned (data-detected calendar)")
+    print(f"  dated files                  {p['date'].nunique():,}")
+    print(f"  genuine sessions             {n_days}")
+    print(f"  rule/data disagreements      {dis}  (holidays, and the Apr-2026 schedule change)")
+    print(f"  rows                         {len(q):,}")
+    print(f"  span                         {q['date'].min().date()} -> {q['date'].max().date()}")
+    print(f"  sessions per year            {n_days/span:.0f}")
     return q
 
 
