@@ -1,52 +1,52 @@
-# === PRIVATE RESULTS — DO NOT COMMIT ===
-# See ~/Desktop/NEPSE_Results_Private/POLICY.md for details
+# ─────────────────────────────────────────────────────────────────────────────
+# Private research workspace
+# ─────────────────────────────────────────────────────────────────────────────
+# The private workspace is a SIBLING of this folder, never nested inside it, so
+# these entries are belt-and-braces only. Session notes, deep dives, the decision
+# log, drafts, referee correspondence and the raw-data vault all live there and
+# must never reach a public repository.
+private/
+../private/
 
-# Result tables
-table_*.csv
+# ─────────────────────────────────────────────────────────────────────────────
+# Data — excluded in full
+# ─────────────────────────────────────────────────────────────────────────────
+# Raw data provenance and redistribution rights are unresolved (project charter
+# Q4). Derived panels are regenerable from raw plus code by construction, so
+# committing them would add ~37MB of bytes that carry no information the pipeline
+# does not already encode.
+data/**
+!data/**/README.md
+!data/.gitkeep
+*.parquet
+*.xlsx
 
-# Figures
-*.png
+# ─────────────────────────────────────────────────────────────────────────────
+# Generated output
+# ─────────────────────────────────────────────────────────────────────────────
+# Figures and tables are reproduced by `./run_pipeline.sh` from raw data. They are
+# also results: the prior iteration of this project kept them out of version
+# control ahead of publication, and that convention is preserved here.
+output/**
+!output/**/.gitkeep
 
-# External market data (Yahoo Finance ToS)
-data/data_india_vix.csv
-data/data_nifty50_ohlcv.csv
-data/data_sp500_vix.csv
-data/data_aligned_nepse_india.csv
-
-# Derived/computed datasets
-data/data_garch_expanded.csv
-data/data_range_based_volatility.csv
-
-# Draft prose
-discussion_section.md
-analysis_results.md
-
-# GARCH rationale
-garch_model_selection_rationale.txt
-
-# === STANDARD IGNORES ===
-
-# Python
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment and tooling
+# ─────────────────────────────────────────────────────────────────────────────
 .venv/
+venv/
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 *.egg-info/
-dist/
 build/
-
-# Jupyter
+dist/
+.pytest_cache/
 .ipynb_checkpoints/
 
-# OS
+# ─────────────────────────────────────────────────────────────────────────────
+# OS and editor
+# ─────────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
-
-# Legacy intermediate data
-data_*.csv
-nepse_volatility_analysis.csv
-venv/

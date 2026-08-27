@@ -1,0 +1,46 @@
+# Run configuration. No absolute paths anywhere — coauthor handoff and publication both break on them.
+
+project:
+  name: nepse-volatility
+  question: "Can volatility estimation methods developed for options-rich markets be adapted for frontier markets without derivatives?"
+
+paths:
+  # Raw data currently lives in the private vault pending provenance clearance.
+  # Flip to "data/raw" once cleared. See private/POLICIES/04_DATA_POLICY.md
+  raw: "../private/data-vault/raw"
+  interim: "data/interim"
+  processed: "data/processed"
+  external: "data/external"
+  output: "output"
+  figures: "output/figures"
+  tables: "output/tables"
+
+data:
+  index_file: "nepse_index_history.csv"
+
+calendar:
+  # NEPSE trades Sunday-Thursday. Friday sessions are rare specials; Saturday never.
+  trading_days: [Sunday, Monday, Tuesday, Wednesday, Thursday]
+  # Observed mean sessions per year, 2017-2025 (full-OHLC years, COVID-2020 excluded).
+  # NOT 252. The exact value used in the paper is a pre-analysis-plan decision.
+  sessions_per_year: null   # TO BE SET IN PAP
+  weekend_gap: "Thursday close -> Sunday open"
+
+sample:
+  # Genuine OHLC begins 2016-06-06; earlier rows have Open == High == Low == Close.
+  full_start: "2010-01-03"
+  ohlc_start: "2016-06-06"
+  end: "2026-06-12"
+  # Sealed until confirmatory analysis. Exact boundary fixed in the PAP.
+  holdout_start: null       # TO BE SET IN PAP
+
+cleaning:
+  # 69 rows violate High >= max(O,C) or Low <= min(O,C) in the usable window.
+  # Rule is a pre-committed decision, not a choice made after seeing results.
+  ohlc_violation_rule: null # TO BE SET IN PAP
+
+estimators:
+  # Complete list is fixed in the PAP so none can quietly disappear from the horse-race.
+  candidates: null          # TO BE SET IN PAP
+
+seed: 20260826
