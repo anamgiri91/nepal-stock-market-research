@@ -248,54 +248,67 @@ RS-zero observations.
 in the middle. That is not a thin-trading pattern: it persists at 590 trades per day and is not
 monotone in intensity.
 
-### The mechanism: an A–B–A experiment inside the same market
+### Why AddRS overshoots — the premise, not a mechanism
 
-NEPSE changed how the official closing price is constructed, twice, inside the panel: last traded
-price through 19 March 2025, a volume-weighted average of the final 15 minutes from 20 March to
-22 September 2025, then last traded price again. Two of AddRS's four boundary conditions involve
-the **close** and two the **open**, so the open-side conditions are a built-in placebo.
+The correction is strictly positive, so it can only help where Rogers–Satchell is biased
+**downward**. Where RS is already unbiased, adding anything positive must overshoot by
+construction.
+
+| Bucket | Median trades | RS/OC | RS biased down? | AddRS/OC |
+|---|---|---|---|---|
+| **NIFTY 50** | dense | 0.980 | **yes** | **1.005** |
+| NEPSE Q1 | 5 | 0.811 | **yes** | 1.203 |
+| NEPSE Q2 | 43 | 1.020 | no | 1.281 |
+| NEPSE Q3 | 112 | 1.123 | no | 1.303 |
+| NEPSE Q5 | 590 | 0.986 | no | 1.158 |
+
+NIFTY is the one case where RS is genuinely below one, and the one case where AddRS lands on
+1.005. In NEPSE Q2–Q5 there is **no downward bias to repair**.
+
+> **The correct statement is not that AddRS fails, but that its premise does not hold outside the
+> thinnest bucket.** Applying a downward-bias correction where the estimator is not
+> downward-biased adds bias rather than removing it. No microstructure mechanism is required, and
+> the boundary is a condition on the *diagnosis*, not on the estimator.
+
+Cluster-bootstrapped by security, the overshoot is 1.239 [1.214, 1.266] — the interval excludes
+one, so it is real.
+
+### An institutional experiment, and what it does and does not show
+
+NEPSE changed how the official closing price is constructed twice inside the panel: last traded
+price through 19 March 2025, a volume-weighted average of the final 15 minutes to 22 September,
+then last traded price again. Two of AddRS's four boundary conditions involve the close and two
+the open, giving a built-in placebo.
 
 | | A1 last-trade | **B VWAP** | A2 last-trade |
 |---|---|---|---|
 | `C = H` *(treated)* | 17.2% | **10.1%** | 17.9% |
-| `C = L` *(treated)* | 14.6% | **7.9%** | 12.7% |
 | `H = O` *(placebo)* | 24.5% | 24.4% | 26.1% |
-| **AddRS/OC** | **1.249** | **1.202** | **1.208** |
+| RS **variance** ratio | **1.131** | **0.982** | 1.009 |
+| AddRS/OC | 1.239 | 1.230 | 1.236 |
 
-The treatment worked — close-side conditions fell 41% and recovered 77%, while the placebo did
-not move. **The overshoot barely responded.** Closing-price construction is ruled out as the
-main driver.
+The treatment worked — close-side conditions fell 41% and recovered, while the placebo did not
+move. **AddRS did not respond**: the differences lie well inside the bootstrap intervals.
 
-The `x²`-weighted decomposition shows why. Since `AddRS − RS = (x²/2)(I_u + I_v)`, what enters is
-*frequency × conditional* `E[x²]`, not frequency alone. Close-side contributions collapsed (`C=H`:
-0.236 → 0.096) while **open-side contributions rose and offset them** (`H=O`: 0.240 → 0.361).
+But a separate finding emerges once the components are read in **variance** rather than
+square-root terms: **Rogers–Satchell itself fell 13%** during the VWAP window. RS is materially
+sensitive to how the exchange constructs the closing price — which is worth knowing independently
+of AddRS.
 
-### Where the mechanism actually is
-
-| | NIFTY 50 | NEPSE |
-|---|---|---|
-| `H = O` | 2.4% | **25.1%** |
-| `L = O` | 2.2% | **28.8%** |
-| **Open is an extreme** | **4.6%** | **47.8%** |
-
-> **The open is an extreme ten times more often in NEPSE, and that is the opening mechanism, not
-> tick coarseness.** NEPSE's open is a call-auction clearing price banded at ±2% of the previous
-> close; an auction price the session never exceeds is by construction the day's extreme. AddRS
-> fires a correction designed for genuinely monotone diffusion paths on roughly half of all
-> stock-days. This ties the failure to the institutional feature already central to the paper.
-
-**Two cautions.** The treatment is not clean: changing the close also changes `x = ln(C/O)`, so
-the VWAP regime alters both the trigger and the magnitude of the correction. And the NIFTY
-comparison is itself confounded — NIFTY's official close is a last-half-hour weighted average, so
-its `C=H = 0.0%` is partly by construction. The experiment is strong evidence *against* the
-close-side channel and suggestive rather than decisive about the open-side one.
+> **Two claims are withdrawn from earlier drafts.** That price discreteness drives the overshoot,
+> and that the banded opening auction does. The second was tested within-market and reverses:
+> splitting by auction outcome, the bucket whose opens are *most often* extremes (pinned at the
+> band, 55.6%) shows the *least* overshoot (1.222), against no-match opens at 35.6% and 1.262.
+> A cross-market contrast suggested the mechanism; the within-market test refutes it. Relatedly,
+> the "ten times more often than NIFTY" figure compared a stock panel to an index; like for like,
+> the NEPSE index shows 13.0% against NIFTY's 4.6%.
 
 ### Four distinct failures
 
 | | Failure | Addressed by |
 |---|---|---|
 | 1 | **Path observation** — too few trades to sample the latent path | AddRS / ABC — and they work |
-| 2 | **Endpoint coincidence** — a banded auction makes the open an extreme on ~48% of stock-days | nothing; it breaks the correction for (1) |
+| 2 | **Premise failure** — a downward-bias correction applied where the estimator is not downward-biased | diagnosis before correction; no estimator fixes this |
 | 3 | **Scope** — an open-to-close estimator cannot observe `C₋₁ → O` | nothing within-session can |
 | 4 | **Institutional censoring** — the pre-open band truncates the opening return | §8.4 |
 
@@ -510,10 +523,13 @@ Stated plainly.
   this gap; ABC's procedure is empirical and its exact form remains paywalled. The paper no longer
   claims existing corrections "cease to apply" — it reports that AddRS repairs the failure it
   targets and is defeated by a different one.
-- **The open-side channel for the AddRS overshoot is suggestive, not decisive.** The A–B–A
-  experiment rules out closing-price construction, but its treatment also perturbs `x = ln(C/O)`,
-  and the NIFTY control is confounded by that index's own averaged close.
+- **Why RS is *not* downward-biased in NEPSE Q2–Q5 is unexplained.** That is now the open
+  question the AddRS result raises, and it is more interesting than the overshoot itself.
 - **The AddRS overshoot is not monotone in trading intensity** (1.16 → 1.30 → 1.20); unexplained.
+- **The A–B–A treatment is not clean**: changing the close also changes `x = ln(C/O)`, perturbing
+  both the trigger and the magnitude of the correction term.
+- **No security-level cross-market comparison exists.** Every cross-market statement rests on
+  index-versus-index or, worse, index-versus-stock contrasts. HO-3 is required.
 - **The opening share of variance is bracketed, not identified** (§8.1).
 - **The `C → O_auction → P_first-continuous → C` decomposition** that would separate auction price
   discovery from overnight information requires transaction data not held.
