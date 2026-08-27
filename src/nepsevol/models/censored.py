@@ -14,9 +14,12 @@ interior observations plus the censored mass.
 
 Model. Latent opening return r* ~ N(mu, sigma^2). Observed:
 
-    r = r*                if |r*| < b        (interior; contributes the density)
-    r = +b                if  r* >= b        (right-censored; contributes 1 - Phi((b-mu)/sigma))
-    r = -b                if  r* <= -b       (left-censored;  contributes Phi((-b-mu)/sigma))
+    r = r*                if  lo < r* < hi   (interior; contributes the density)
+    r = hi                if  r* >= hi        (right-censored; contributes 1 - Phi((hi-mu)/sigma))
+    r = lo                if  r* <= lo        (left-censored;  contributes Phi((lo-mu)/sigma))
+
+with lo = ln(1-band) and hi = ln(1+band). These are NOT symmetric: a +/-2% price band gives
++1.9803% and -2.0203% in log terms.
 
 The no-match case (r exactly 0, the auction found no counterparty) is NOT censoring and is
 excluded by default: it reflects absent order flow rather than a truncated price move, and
@@ -27,28 +30,36 @@ from __future__ import annotations
 import numpy as np
 from scipy import optimize, stats
 
-__all__ = ["tobit_sigma", "censoring_inflation"]
+__all__ = ["tobit_sigma", "censoring_inflation", "log_bounds"]
 
 
-def _neg_loglik(params, r, band, tol):
+def log_bounds(band: float) -> tuple[float, float]:
+    """Log-return censoring bounds for a band expressed as a fraction of the previous close.
+
+    The exchange rule is stated in PRICE terms, so the bounds are NOT symmetric in logs:
+    a +/-2% band gives ln(1.02) = +1.9803% and ln(0.98) = -2.0203%. Treating them as +/-0.02
+    misplaces both boundaries and biases the recovered sigma.
+    """
+    return float(np.log(1.0 - band)), float(np.log(1.0 + band))
+
+
+def _neg_loglik(params, r, lo_b, hi_b, tol):
     mu, log_sigma = params
     sigma = np.exp(log_sigma)
     if not np.isfinite(sigma) or sigma <= 0:
         return 1e10
 
-    hi = r >= band * (1 - tol)
-    lo = r <= -band * (1 - tol)
+    hi = r >= hi_b * (1 - tol)
+    lo = r <= lo_b * (1 - tol)
     mid = ~(hi | lo)
 
     ll = 0.0
     if mid.any():
         ll += np.sum(stats.norm.logpdf(r[mid], mu, sigma))
     if hi.any():
-        p = stats.norm.sf(band, mu, sigma)
-        ll += hi.sum() * np.log(max(p, 1e-300))
+        ll += hi.sum() * np.log(max(stats.norm.sf(hi_b, mu, sigma), 1e-300))
     if lo.any():
-        p = stats.norm.cdf(-band, mu, sigma)
-        ll += lo.sum() * np.log(max(p, 1e-300))
+        ll += lo.sum() * np.log(max(stats.norm.cdf(lo_b, mu, sigma), 1e-300))
     return -ll
 
 
@@ -68,10 +79,11 @@ def tobit_sigma(returns, band: float, tol: float = 0.05,
         return {"sigma_latent": np.nan, "sigma_naive": np.nan, "inflation": np.nan,
                 "censored_share": np.nan, "n": len(r)}
 
+    lo_b, hi_b = log_bounds(band)
     naive = float(r.std(ddof=1))
-    censored = float(np.mean(np.abs(r) >= band * (1 - tol)))
+    censored = float(np.mean((r >= hi_b * (1 - tol)) | (r <= lo_b * (1 - tol))))
     start = np.array([float(r.mean()), np.log(max(naive, 1e-6))])
-    res = optimize.minimize(_neg_loglik, start, args=(r, band, tol),
+    res = optimize.minimize(_neg_loglik, start, args=(r, lo_b, hi_b, tol),
                             method="Nelder-Mead",
                             options={"maxiter": 4000, "xatol": 1e-9, "fatol": 1e-9})
     sigma = float(np.exp(res.x[1])) if res.success or res.status == 2 else np.nan
@@ -89,7 +101,8 @@ def censoring_inflation(sigma_true: float, band: float) -> float:
 
     so the understatement depends only on the ratio band/sigma.
     """
-    b = band / sigma_true
+    c = np.log(1.0 + band)            # use the upper log bound; symmetric approximation
+    b = c / sigma_true
     phi, Phi = stats.norm.pdf(b), stats.norm.cdf(-b)
-    var_obs = sigma_true**2 * (1 - 2 * b * phi - 2 * Phi) + 2 * (band**2) * Phi
+    var_obs = sigma_true**2 * (1 - 2 * b * phi - 2 * Phi) + 2 * (c**2) * Phi
     return float(np.sqrt(var_obs) / sigma_true)

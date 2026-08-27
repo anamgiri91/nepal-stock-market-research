@@ -167,12 +167,13 @@ def test_open_at_prev_close_flags_the_no_match_rule():
 
 # ── censored opening returns ───────────────────────────────────────────────────
 def test_tobit_recovers_known_sigma_under_heavy_censoring():
-    """The whole point: the censoring POINT is known, so latent sigma is identified even when
-    most observations are pinned. At 57% censoring the naive sd understates by more than half."""
-    from nepsevol.models.censored import tobit_sigma
+    """The censoring POINT is known, so latent sigma is recoverable even when most observations
+    are pinned. Bounds are ASYMMETRIC in logs because the exchange rule is stated in price."""
+    from nepsevol.models.censored import tobit_sigma, log_bounds
     rng = np.random.default_rng(11)
     true_s, band = 0.035, 0.02
-    obs = np.clip(rng.normal(0, true_s, 30_000), -band, band)
+    lo, hi = log_bounds(band)            # asymmetric: the rule is +/-2% in PRICE
+    obs = np.clip(rng.normal(0, true_s, 30_000), lo, hi)
     out = tobit_sigma(obs, band=band, tol=1e-6)
     assert out["censored_share"] > 0.5
     assert out["sigma_naive"] < true_s * 0.6            # naive badly understates
@@ -181,10 +182,11 @@ def test_tobit_recovers_known_sigma_under_heavy_censoring():
 
 def test_tobit_is_harmless_when_censoring_is_light():
     """A correction that distorts uncensored data would be worse than none."""
-    from nepsevol.models.censored import tobit_sigma
+    from nepsevol.models.censored import tobit_sigma, log_bounds
     rng = np.random.default_rng(3)
     true_s, band = 0.004, 0.02
-    obs = np.clip(rng.normal(0, true_s, 20_000), -band, band)
+    lo, hi = log_bounds(band)
+    obs = np.clip(rng.normal(0, true_s, 20_000), lo, hi)
     out = tobit_sigma(obs, band=band, tol=1e-6)
     assert out["censored_share"] < 0.01
     assert out["sigma_latent"] == pytest.approx(true_s, rel=0.05)
@@ -194,9 +196,10 @@ def test_tobit_is_harmless_when_censoring_is_light():
 def test_tobit_excludes_no_match_zeros_by_default():
     """An exact-zero open means the auction found no counterparty, not a truncated price move.
     Counting those as interior zeros drags sigma down."""
-    from nepsevol.models.censored import tobit_sigma
+    from nepsevol.models.censored import tobit_sigma, log_bounds
     rng = np.random.default_rng(5)
-    r = np.clip(rng.normal(0, 0.02, 8000), -0.02, 0.02)
+    lo, hi = log_bounds(0.02)
+    r = np.clip(rng.normal(0, 0.02, 8000), lo, hi)
     padded = np.concatenate([r, np.zeros(4000)])          # 33% spurious no-match zeros
     kept = tobit_sigma(padded, band=0.02, tol=1e-6, drop_exact_zero=True)
     counted = tobit_sigma(padded, band=0.02, tol=1e-6, drop_exact_zero=False)
@@ -204,8 +207,19 @@ def test_tobit_excludes_no_match_zeros_by_default():
 
 
 def test_analytic_censoring_inflation_matches_simulation():
-    from nepsevol.models.censored import censoring_inflation
+    from nepsevol.models.censored import censoring_inflation, log_bounds
     rng = np.random.default_rng(7)
     true_s, band = 0.03, 0.02
-    obs = np.clip(rng.normal(0, true_s, 200_000), -band, band)
+    lo, hi = log_bounds(band)
+    obs = np.clip(rng.normal(0, true_s, 200_000), lo, hi)
     assert censoring_inflation(true_s, band) == pytest.approx(obs.std() / true_s, rel=0.02)
+
+
+def test_log_bounds_are_asymmetric():
+    """The rule is +/-2% in PRICE, so ln(1.02) = +1.9803% and ln(0.98) = -2.0203%. Treating the
+    bounds as symmetric +/-0.02 misplaces both and biases the recovered sigma."""
+    from nepsevol.models.censored import log_bounds
+    lo, hi = log_bounds(0.02)
+    assert hi == pytest.approx(np.log(1.02))
+    assert lo == pytest.approx(np.log(0.98))
+    assert abs(lo) > hi                      # the downside bound is the wider one
