@@ -1,6 +1,6 @@
-# When Continuous Price Discovery Breaks Down: Volatility Measurement in an Ultra-Thin Frontier Market
+# When Continuous Price Discovery Breaks Down: Volatility Measurement in an Ultra-Thin Equity Market
 
-**Draft v0.3 · 2026-08-27 · not for circulation**
+**Draft v0.4 · 2026-08-27 · not for circulation**
 
 ---
 
@@ -18,8 +18,10 @@ NIFTY 50 index give statistically indistinguishable estimator ratios using ident
 and most consequentially, the reported downward bias of the Rogers–Satchell estimator is largely
 a **benchmark-scope artifact** — measured against a matched intraday benchmark it is 0.965 on the
 NIFTY 50, essentially unbiased. What actually breaks in an ultra-thin market is different and
-more fundamental: price discovery migrates out of the continuous session and into the opening
-call auction, which NEPSE bands at ±2% of the previous close. Between 56% and 83% of daily
+more fundamental: daily price variation becomes disproportionately concentrated in the **opening
+print**, produced by a call auction that NEPSE bands at ±2% of the previous close. Price discovery
+at the auction is the likely economic mechanism, but with only daily OHLC we observe *where the
+daily price change appears*, not when information is impounded. Between 56% and 83% of daily
 variance in the thinnest securities is realized at the open, and the band censors that opening
 return on roughly a fifth of all stock-days. Estimators built on the intraday session cannot see
 this component; estimators that can see it observe it through a truncated window.
@@ -54,14 +56,25 @@ institutional design of the opening auction.
 
 NEPSE is unusual on four dimensions that jointly matter, and the fourth is the paper's subject.
 
-**No derivatives of any kind.** No options, no futures, no ETFs. Volatility cannot be extracted
-from any traded instrument, which is what makes the market a clean test of estimators intended
-for exactly this situation.
+**No listed equity derivatives.** No equity options, futures, or ETFs, so equity volatility cannot
+be inferred from any traded instrument. *(Nepal has some commodity-derivative activity and has
+announced plans for securities derivatives; the claim here is confined to listed equity
+derivatives, which is all the argument requires.)*
 
-**A Sunday–Thursday trading week.** Across 3,759 index sessions, Friday appears 24 times (rare
-special sessions) and Saturday never. The annualization factor is **222 sessions**, not 252, and
-the weekend gap runs Thursday close → Sunday open. Volatility, range, and trading all peak on
-Sunday, consistent with a two-day accumulation.
+**A trading week that changed inside the sample.** NEPSE traded **Sunday–Thursday** historically
+and moved to **Monday–Friday** in April 2026. A fixed weekday rule is therefore wrong for any
+sample spanning the change: it deletes genuine Friday sessions and retains stale Sundays.
+Measured as the fraction of a date's cross-section identical to the prior dated file (near 1.0
+means a carried-forward record, not a session):
+
+| | Sunday | Monday–Thursday | Friday | Saturday |
+|---|---|---|---|---|
+| **pre-2026-04** | 0.155 | 0.12–0.20 | **1.000** | 1.000 |
+| **post-2026-04** | **0.924** | 0.04–0.10 | **0.199** | 0.933 |
+
+Sessions are therefore detected from this staleness signature rather than assumed from weekdays,
+which also removes public holidays the weekday rule silently retained. The detector finds **569
+genuine sessions** where the fixed rule kept 640, a rate of **230 per year** — not 252.
 
 **Structural closures.** The 2015 Gorkha earthquake (31 days), COVID-19 (~98 days across two 2020
 gaps), and annual Dashain/Tihar closures of 8–12 days.
@@ -94,6 +107,15 @@ estimator, proved unbiased under a reflection principle, using daily OHLC alone.
 two-scale realized volatility, find daily range estimators *"not downwardly biased in the presence
 of negative autocorrelation and low liquidity, as generally suspected"*, identifying **drift** as
 the main source of Parkinson's problems.
+
+**Opening call auctions are themselves a studied object.** Work on the London Stock Exchange finds
+that opening-call failures concentrate among low-volume stocks and that thinner stocks may reach
+price efficiency only once continuous trading begins; studies of other opening calls, including
+India's NSE, find their effectiveness depends heavily on institutional design and liquidity. Our
+contribution is therefore **not** that thin securities concentrate repricing at the open, which is
+consistent with that literature, but narrower: *in an ultra-thin, banded call-auction market, the
+location and censoring of opening repricing creates a measurement problem for daily OHLC
+volatility estimators that finite-sampling corrections do not address.*
 
 > **No novelty is claimed for the finite-sampling mechanism, nor for its correction from daily
 > data.** Both are established. This paper asks where these results cease to apply, and identifies
@@ -142,16 +164,29 @@ percentile **1**. Below 10 trades: 14.8% of stock-days. Below 30: 25.2%. Below 1
 
 **The estimators do not degrade gracefully — they become undefined.**
 
-| Pathology | Share of stock-days |
+| Property | Share of stock-days |
 |---|---|
 | Zero observed range (`H = L`) → **Parkinson variance exactly zero** | 6.1% |
-| Rogers–Satchell returns zero or negative variance | 15.2% |
-| Garman–Klass returns **negative** variance | 0.5% |
-| Zero close-to-close return (stale price) | 4.0% |
+| Rogers–Satchell exactly zero | 15.2% |
+| &nbsp;&nbsp;…of which `H = L` | 40.4% |
+| &nbsp;&nbsp;…remainder are **monotone days**, a known property of RS | 59.6% |
+| Zero close-to-close return (stale price) | 4.1% |
 
 Concentration is stark. In the least liquid decile — median **2** trades per day — **Parkinson
-returns exactly zero on 58.2% of stock-days.** An estimator reporting zero volatility on the
-majority of its observations is not noisy; it is inapplicable.
+returns exactly zero on 58.2% of stock-days.** The precise claim matters: Parkinson with `H = L`
+is *defined* and equals zero. It is not undefined; it is **uninformative**, which is the stronger
+economic statement. An estimator reporting zero volatility on the majority of its observations is
+inapplicable as a volatility proxy.
+
+> **A correction to an earlier draft.** Negative Rogers–Satchell and Garman–Klass values were
+> previously reported as estimator pathologies. That was wrong. For a valid OHLC bar both are
+> **non-negative by construction**: `RS = ln(H/O)·ln(H/C) + ln(L/O)·ln(L/C)` has two non-negative
+> products when `H ≥ max(O,C)` and `L ≤ min(O,C)`; and `|ln(C/O)| ≤ ln(H/L)` forces
+> `GK ≥ (½ − (2ln2−1))·ln(C/O)² ≥ 0`. Cross-tabulated, **100% of negative RS and 100% of negative
+> GK observations sit on OHLC-inconsistent records, and none occur among valid ones.** They are a
+> data defect (0.63% of rows), not a property of the estimators. The zeros are a separate and
+> genuine phenomenon — but only 40% arise from `H = L`; the rest are monotone days, a documented
+> property of RS rather than evidence of thin-trading degeneracy.
 
 ---
 
@@ -194,18 +229,28 @@ $$\text{RS} / \text{CC} \;=\; \underbrace{(\text{RS}/\text{OC})}_{\text{genuine 
 
 ![Figure 14](FIG14)
 
-| Market | RS ÷ CC | RS ÷ OC | OC ÷ CC | Overnight share |
-|---|---|---|---|---|
-| **NIFTY 50 index** | 0.671 | **0.965** | 0.695 | **34.3%** |
-| NEPSE index | 0.534 | 0.542 | 0.985 | 4.5% |
-| NEPSE stocks — dense | 1.084 | 0.968 | 1.120 | 28.0% |
-| **NEPSE stocks — thin** | **0.222** | 0.643 | **0.346** | **82.3%** |
+| Market | RS ÷ CC | RS ÷ OC | OC ÷ CC | Var(open)/Var(cc) | Var(intraday)/Var(cc) | 2Cov/Var(cc) |
+|---|---|---|---|---|---|---|
+| **NIFTY 50 index** | 0.671 | **0.965** | 0.695 | 0.343 | 0.695 | −0.038 |
+| NEPSE index | 0.534 | 0.542 | 0.985 | 0.045 | 0.985 | −0.030 |
+| NEPSE stocks — dense | 1.112 | 0.965 | 1.152 | 0.279 | 1.152 | **−0.322** |
+| **NEPSE stocks — thin** | **0.226** | 0.631 | **0.359** | 0.817 | 0.359 | −0.147 |
 
-**On the NIFTY 50, Rogers–Satchell measured against a matched intraday benchmark is 0.965 —
-essentially unbiased.** The reported shortfall is overwhelmingly the third of daily variance that
-occurs overnight, which the estimator cannot observe by construction. *(Our level is 0.671 against
-their 0.82 on a different window, 2010–2026 versus 1996–2011; the levels are not comparable but
-the decomposition is exact regardless.)*
+**`OC ÷ CC` is a ratio, not a variance share.** Since `r_cc = r_co + r_oc`,
+`Var(cc) = Var(co) + Var(oc) + 2Cov(co, oc)`, so the ratio can exceed one — as it does for dense
+NEPSE securities (1.152), offset by a strongly negative covariance (−0.322). The three components
+are therefore reported separately and sum to one. Earlier drafts described `OC ÷ CC` as "the share
+the estimator can see"; that was incorrect wherever the covariance is non-trivial.
+
+**On our 2010–2026 NIFTY sample, most of the gap between Rogers–Satchell and close-to-close
+variance disappears when RS is compared with a matched open-to-close benchmark** — 0.671 against
+0.965.
+
+We stop short of the stronger claim. Their 0.82 is estimated on **1996–2011**, ours on
+**2010–2026**, and we have not decomposed their sample. Saying their result is "largely a
+benchmark-scope artifact" would require replicating their window, which is the obvious next test:
+if `RS/CC ≈ 0.82` and `RS/OC ≈ 1` on 1996–2011, the point becomes sharp. Until then the claim is
+confined to our own sample.
 
 This is not a criticism of ABC or AddRS. **They solve a different measurement problem**: they
 correct the measurement of within-session volatility, and do not claim to convert a within-session
@@ -275,8 +320,15 @@ terms is therefore too simple: they observe the right component through a trunca
 
 ## 8.4 Recovering what the band hides
 
-The band censors the opening return **at a point that is known exactly**, which turns the
-institutional obstacle into an identified estimation problem. When the latent clearing price lies
+The band censors the opening return **at a point that is known exactly**, which makes a
+model-based recovery of latent opening dispersion available.
+
+> **The maintained assumption, stated because it is doing work.** We assume the observed opening
+> price is a censored realization of a latent *unconstrained* opening return. That is an
+> approximation, not assumption-free identification: an order-price band changes which orders
+> investors may submit and plausibly which they choose to submit, so a boundary open does not
+> prove that an otherwise identical unconstrained auction would have cleared beyond it. What
+> follows is a structural estimate under that assumption, with sensitivity checks. When the latent clearing price lies
 outside the band the auction clears at the boundary; the observed opening return is then
 right- or left-censored at ±2% (±5% after April 2026). This is a two-sided Tobit, and the latent
 standard deviation is recovered by maximum likelihood from the interior observations plus the
@@ -295,7 +347,7 @@ On 312 securities in the ±2% regime:
 | Median share of opens pinned at the band | **27.2%** |
 | Median latent ÷ observed opening volatility | **1.282** |
 | Securities understated by more than 25% | **57.1%** |
-| Daily variance hidden by the band | median **19.9%**, p90 42.2% |
+| Estimated understatement of the **opening-return variance component** | median **19.9%** of Var(cc), p90 42.2% |
 
 The inflation factor is **roughly flat in liquidity** — 1.17, 1.32, 1.31, 1.27, 1.29 across
 trade-count quintiles spanning 3 to 420 trades per day.
@@ -318,7 +370,9 @@ prevent; it belongs in a pre-specified amendment.
 Monthly fingerprints locate a sharp regime change. Through 2026-03 the 95th percentile of the
 opening return is pinned at 2.01% every month; from **April 2026** it jumps to ~4.9%, the boundary
 pile-up collapses from ~30% to ~3%, and the share of opens exceeding the old band rises from ~0%
-to ~28%. This is consistent with the pre-open band being widened from ±2% to ±5%.
+to ~28%. **Effective 20 April 2026, NEPSE widened the permissible pre-open price movement from ±2% to
+±5%**, in a reform that simultaneously raised the continuous-session order band and the daily
+individual-stock price limit. The inferred break and the documented reform coincide.
 
 This is a sharp, exogenous, precisely-dated change in censoring width with a natural
 treatment-intensity measure. **It is not exploited here:** the window has been inspected, so any
@@ -362,9 +416,12 @@ claim it was meant to adjudicate. No re-specification was attempted.
 
 Stated plainly.
 
-- **No benchmarking against ABC or AddRS.** Their formulae were not obtainable. No comparative
-  claim about any correction proposed here is admissible until this is done. **This is the
-  single most important outstanding item.**
+- **No benchmarking against ABC or AddRS.** A published exposition gives the AddRS construction
+  from daily OHLC — `b = ln(H/O)`, `c = ln(L/O)`, `x = ln(C/O)`, `u = 2b − x`, `v = 2c − x` — but
+  the additive correction terms themselves are still behind a paywall, so it is not yet
+  implementable end to end. **This remains the single most important outstanding item**, and until
+  it is run the paper must not claim that existing corrections "cease to apply"; it identifies a
+  failure dimension that finite-sampling corrections do not target.
 - **The opening share of variance is bracketed, not identified** (§8.1).
 - **The `C → O_auction → P_first-continuous → C` decomposition** that would separate auction price
   discovery from overnight information requires transaction data not held.
@@ -381,7 +438,7 @@ Stated plainly.
 
 *(to verify against sources before submission)*
 
-Beckers (1983) · Christensen & Podolskij (2007) · Christensen, Podolskij & Vetter (2009) ·
+Beckers (1983) · Cao, Ghysels & Hatheway on opening call auctions · Christensen & Podolskij (2007) · Christensen, Podolskij & Vetter (2009) ·
 Corsi (2009) · Garman & Klass (1980) · Jacob & Vipul (2008) · Kumar & Maheswaran (2014) ·
 Maheswaran & Kumar (2013) · Martens & van Dijk (2007) · Parkinson (1980) · Patton (2011) ·
 Rogers & Satchell (1991) · Rogers, Satchell & Yoon (1994) · Yang & Zhang (2000)
