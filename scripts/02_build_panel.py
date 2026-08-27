@@ -38,6 +38,14 @@ def build_long() -> pd.DataFrame:
     for c in ["open", "high", "low", "close", "volume", "turnover"]:
         p[c] = pd.to_numeric(p[c], errors="coerce")
     p = p.dropna(subset=["date", "close"]).sort_values(["symbol", "date"]).reset_index(drop=True)
+
+    # Turnover is NOT populated in the source before 2011: every zero-turnover row there has
+    # POSITIVE volume (99.9% of 3,702 such rows) and 56% show High != Low, so those securities
+    # traded and their prices moved. This is missingness encoded as zero. Left uncorrected, any
+    # turnover-conditioned rule silently reclassifies traded days as untraded ones.
+    missing_turnover = (p["turnover"] == 0) & (p["volume"] > 0)
+    p.loc[missing_turnover, "turnover"] = np.nan
+    p["turnover_missing"] = missing_turnover
     return p
 
 
@@ -88,12 +96,51 @@ def diagnose(p: pd.DataFrame, name: str):
     return viol
 
 
+TRADING_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]
+
+
+def clean_trades_panel(p: pd.DataFrame, stale_threshold: float = 0.98) -> pd.DataFrame:
+    """Remove stale non-trading sessions from the daily cross-section archive.
+
+    The archive contains files for Fridays and Saturdays, on which NEPSE does not trade. Those
+    files carry the previous session forward: 99.2% of Saturday closes and 87.5% of Friday closes
+    are identical to the prior dated file. Retained, they roughly double the measured zero-return
+    friction and insert non-events into every rolling window.
+
+    Two passes: restrict to the Sunday-Thursday week, then drop any remaining date whose whole
+    cross-section is >= `stale_threshold` identical to the prior date.
+    """
+    q = p[p["date"].dt.day_name().isin(TRADING_DAYS)].copy()
+
+    piv = q.pivot_table(index="date", columns="symbol", values="close")
+    prev = piv.shift(1)
+    both = piv.notna() & prev.notna()
+    same = ((piv == prev) & both).sum(axis=1)
+    frac = same / both.sum(axis=1).replace(0, np.nan)
+    stale_dates = frac[frac >= stale_threshold].index
+    q = q[~q["date"].isin(stale_dates)]
+
+    n_days = q["date"].nunique()
+    span = (q["date"].max() - q["date"].min()).days / 365.25
+    print(f"\nPANEL B - cleaned")
+    print(f"  weekday filter removed   {len(p) - len(p[p['date'].dt.day_name().isin(TRADING_DAYS)]):,} rows")
+    print(f"  stale dates dropped      {len(stale_dates)}")
+    print(f"  rows                     {len(q):,}")
+    print(f"  sessions                 {n_days}  ({q['date'].min().date()} -> {q['date'].max().date()})")
+    print(f"  sessions per year        {n_days/span:.0f}   (index reference: 222)")
+    return q
+
+
 if __name__ == "__main__":
     print("Building panels from", RAW)
     long_ = build_long();  diagnose(long_, "PANEL A - long history (no trade counts)")
     trades = build_trades(); diagnose(trades, "PANEL B - with trade counts")
 
+    clean = clean_trades_panel(trades)
+
     long_.to_parquet(OUT / "panel_long.parquet", index=False)
     trades.to_parquet(OUT / "panel_trades.parquet", index=False)
+    clean.to_parquet(OUT / "panel_trades_clean.parquet", index=False)
     print(f"\nwrote {OUT/'panel_long.parquet'}")
     print(f"wrote {OUT/'panel_trades.parquet'}")
+    print(f"wrote {OUT/'panel_trades_clean.parquet'}")
