@@ -215,6 +215,75 @@ property of trading intensity.
 
 ---
 
+## 6b. Does the existing correction hold?
+
+The leading daily-OHLC correction for finite-sampling bias is AddRS (Kumar & Maheswaran 2014),
+derived from a reflection principle for a random walk. With `b = ln(H/O)`, `c = ln(L/O)`,
+`x = ln(C/O)`, `u = 2b − x`, `v = 2c − x`:
+
+`AddRS = ½[½(u²−x²) + x²·1{H=O or C=H}] + ½[½(v²−x²) + x²·1{L=O or C=L}]`
+
+The construction reduces exactly. Since `½(u²−x²) = 2b(b−x)`, the indicator-free part is
+*identically* Rogers–Satchell, so
+
+$$\text{AddRS} = \text{RS} + \tfrac{x^2}{2}\left(\mathbb{1}_u + \mathbb{1}_v\right)$$
+
+It substitutes the squared open-to-close return whenever an observed extreme coincides with the
+open or close — precisely the monotone case where RS collapses to zero, which is 59.6% of our
+RS-zero observations.
+
+![Figure 18](FIG18)
+
+| Regime | Median trades | Parkinson/OC | RS/OC | **AddRS/OC** | RS = 0 |
+|---|---|---|---|---|---|
+| **NIFTY 50 index** | dense | 0.978 | 0.980 | **1.005** | 0.0% |
+| NEPSE Q1 | 5 | 0.820 | 0.811 | **1.203** | 60.0% |
+| NEPSE Q3 | 112 | 1.048 | 1.123 | **1.303** | 3.2% |
+| NEPSE Q5 | 590 | 0.979 | 0.986 | **1.158** | 2.5% |
+
+**AddRS works where it was designed to.** On NIFTY it moves Rogers–Satchell from 0.980 to
+**1.005** — an almost exact correction, and an external validation of our implementation.
+
+**On NEPSE it overstates at every liquidity level**, from 1.158 where trading is dense to 1.303
+in the middle. That is not a thin-trading pattern: it persists at 590 trades per day and is not
+monotone in intensity.
+
+### The mechanism is price discreteness
+
+The indicator fires when an observed extreme coincides with the open or close. On a continuous
+price path that is measure-zero outside genuinely monotone bars; on a coarse price grid it happens
+constantly.
+
+| | NIFTY 50 | NEPSE Q5 (590/day) | NEPSE Q1 (5/day) |
+|---|---|---|---|
+| Either indicator fires | **4.7%** | **37.4%** | 91.9% |
+| `C = H` | 0.0% | 4.4% | 55.3% |
+
+Eight times more often at comparable trading density. A continuously computed index never closes
+exactly at its own high; a discretely quoted security frequently does.
+
+> **The boundary, stated precisely.** AddRS repairs the failure dimension it targets — too few
+> observations of the path — and is accurate on a market with a fine price grid. It systematically
+> overstates volatility where prices live on a coarse grid, because its indicator cannot separate
+> a genuinely monotone path from an extreme that coincides with the open or close by discreteness.
+> **The failure dimension is price discreteness, orthogonal to the trade-count dimension the
+> correction was built for.**
+
+### Four distinct failures
+
+| | Failure | Addressed by |
+|---|---|---|
+| 1 | **Path observation** — too few trades to sample the latent path | AddRS / ABC — and they work |
+| 2 | **Price discreteness** — a coarse grid makes extremes coincide with open and close | nothing; it breaks the correction for (1) |
+| 3 | **Scope** — an open-to-close estimator cannot observe `C₋₁ → O` | nothing within-session can |
+| 4 | **Institutional censoring** — the pre-open band truncates the opening return | §8.4 |
+
+Separating these is the paper's conceptual contribution. "Range estimators break in illiquid
+markets" conflates all four.
+
+
+---
+
 ## 7. Diagnosing the reported bias: benchmark scope
 
 Maheswaran and Kumar (2013) report a variance ratio of **0.82** for the Rogers–Satchell estimator
@@ -416,12 +485,12 @@ claim it was meant to adjudicate. No re-specification was attempted.
 
 Stated plainly.
 
-- **No benchmarking against ABC or AddRS.** A published exposition gives the AddRS construction
-  from daily OHLC — `b = ln(H/O)`, `c = ln(L/O)`, `x = ln(C/O)`, `u = 2b − x`, `v = 2c − x` — but
-  the additive correction terms themselves are still behind a paywall, so it is not yet
-  implementable end to end. **This remains the single most important outstanding item**, and until
-  it is run the paper must not claim that existing corrections "cease to apply"; it identifies a
-  failure dimension that finite-sampling corrections do not target.
+- **ABC is still not implemented.** AddRS now is (§6b), which removes the substantive version of
+  this gap; ABC's procedure is empirical and its exact form remains paywalled. The paper no longer
+  claims existing corrections "cease to apply" — it reports that AddRS repairs the failure it
+  targets and is defeated by a different one.
+- **The AddRS overshoot is not monotone in trading intensity** (1.16 → 1.30 → 1.20). Whether that
+  reflects price level, tick-to-price ratio, or something else is not established.
 - **The opening share of variance is bracketed, not identified** (§8.1).
 - **The `C → O_auction → P_first-continuous → C` decomposition** that would separate auction price
   discovery from overnight information requires transaction data not held.

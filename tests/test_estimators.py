@@ -61,3 +61,62 @@ def test_close_to_close_survives_sparsity():
     sparse = simulate_ohlc(n_days=8000, sigma_daily=TRUE_SIGMA, n_trades=10, seed=7)
     sigma_cc = np.sqrt(np.nanmean(R.close_to_close(sparse)))
     assert abs(sigma_cc - TRUE_SIGMA) / TRUE_SIGMA < 0.05
+
+
+# ── AddRS (Kumar & Maheswaran 2014) ───────────────────────────────────────────
+def _bar(o, h, l, c):
+    import pandas as pd
+    return pd.DataFrame({"open": [o], "high": [h], "low": [l], "close": [c]})
+
+
+def test_addrs_equals_rs_plus_indicator_term():
+    """The construction reduces to RS + (x^2/2)(I_u + I_v). Verified symbolically; pinned here
+    numerically on a bar where neither indicator fires."""
+    import pandas as pd
+    df = _bar(100.0, 104.0, 97.0, 101.0)          # H>O, C<H, L<O, C>L -> no indicator fires
+    assert float(R.add_rs(df).iloc[0]) == pytest.approx(float(R.rogers_satchell(df).iloc[0]))
+
+
+def test_addrs_rescues_a_monotone_up_day():
+    """O=L, C=H. Rogers-Satchell is exactly zero; AddRS returns the squared open-to-close return.
+    This is the case that matters: 59.6% of our RS==0 observations are monotone, not degenerate."""
+    df = _bar(100.0, 105.0, 100.0, 105.0)
+    x = np.log(105.0 / 100.0)
+    assert float(R.rogers_satchell(df).iloc[0]) == pytest.approx(0.0, abs=1e-15)
+    assert float(R.add_rs(df).iloc[0]) == pytest.approx(x**2, rel=1e-9)
+
+
+def test_addrs_rescues_a_monotone_down_day():
+    df = _bar(100.0, 100.0, 95.0, 95.0)
+    x = np.log(95.0 / 100.0)
+    assert float(R.rogers_satchell(df).iloc[0]) == pytest.approx(0.0, abs=1e-15)
+    assert float(R.add_rs(df).iloc[0]) == pytest.approx(x**2, rel=1e-9)
+
+
+def test_addrs_zero_on_a_fully_degenerate_bar():
+    """O=H=L=C. Both indicators fire but x=0, so there is nothing to substitute. AddRS cannot
+    manufacture volatility from a bar with no price movement at all."""
+    df = _bar(100.0, 100.0, 100.0, 100.0)
+    assert float(R.add_rs(df).iloc[0]) == pytest.approx(0.0, abs=1e-15)
+
+
+def test_addrs_is_scale_invariant():
+    import pandas as pd
+    a = _bar(100.0, 104.0, 97.0, 101.0)
+    b = _bar(10000.0, 10400.0, 9700.0, 10100.0)
+    assert float(R.add_rs(a).iloc[0]) == pytest.approx(float(R.add_rs(b).iloc[0]), rel=1e-9)
+
+
+def test_addrs_non_negative_on_valid_bars():
+    """Both components are non-negative on a consistent bar, so AddRS >= RS >= 0."""
+    from nepsevol.estimators.simulate import simulate_observed_ohlc
+    for n_tr in (2, 10, 200):
+        df = simulate_observed_ohlc(4000, 0.02, n_tr, seed=n_tr)
+        a = np.asarray(R.add_rs(df), dtype=float)
+        assert np.nanmin(a) >= -1e-15
+        assert np.nanmin(a - np.asarray(R.rogers_satchell(df), dtype=float)) >= -1e-15
+
+
+def test_addrs_recovers_true_sigma_when_densely_observed(dense):
+    sigma_hat = np.sqrt(np.nanmean(R.add_rs(dense)))
+    assert abs(sigma_hat - TRUE_SIGMA) / TRUE_SIGMA < 0.05
