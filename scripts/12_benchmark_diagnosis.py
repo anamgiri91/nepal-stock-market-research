@@ -44,9 +44,20 @@ def decompose(df, label, panel=False):
     else:
         r_cc=c.diff(); r_on=(o-c.shift(1))
     r_oc=(c-o)
+    r_co = r_on
     v_cc,v_oc,v_on=r_cc.var(),r_oc.var(),r_on.var()
-    return {"market":label,"n":len(d),"RS/close-to-close":rs/v_cc,"RS/open-to-close":rs/v_oc,
-            "open-to-close ÷ close-to-close":v_oc/v_cc,"overnight share":v_on/v_cc,
+    # Var(cc) = Var(co) + Var(oc) + 2 Cov(co, oc). The covariance term is NOT optional: without
+    # it, Var(oc)/Var(cc) is not a variance "share" and can exceed 1, as it does for dense
+    # securities here. Report all three components.
+    ok = r_co.notna() & r_oc.notna()
+    cov = float(r_co[ok].cov(r_oc[ok]))
+    return {"market":label,"n":len(d),
+            "RS/close-to-close":rs/v_cc,"RS/open-to-close":rs/v_oc,
+            "OC/CC ratio":v_oc/v_cc,
+            "Var(open) /Var(cc)":v_on/v_cc,
+            "Var(intraday)/Var(cc)":v_oc/v_cc,
+            "2Cov/Var(cc)":2*cov/v_cc,
+            "components sum":(v_on+v_oc+2*cov)/v_cc,
             "zero-range %":100*(d.high==d.low).mean()}
 
 nifty=pd.read_csv(EXT/"nifty50.csv",parse_dates=["Date"]); nifty.columns=[x.lower() for x in nifty.columns]
@@ -61,8 +72,10 @@ rows=[decompose(nifty,"NIFTY 50 index"), decompose(nep,"NEPSE index"),
 t=pd.DataFrame(rows).set_index("market")
 t.to_csv(TAB/"table18_benchmark_diagnosis.csv")
 print("Where does the reported Rogers-Satchell 'bias' come from?")
-print("  Maheswaran & Kumar (2013) report RS/usual = 0.82 on Nifty and attribute it to")
-print("  the random-walk effect. Exact decomposition:  RS/CC = (RS/OC) x (OC/CC)\n")
+print("  Maheswaran & Kumar (2013) report RS/usual = 0.82 on Nifty (1996-2011) and attribute it")
+print("  to the random-walk effect. Ratio identity: RS/CC = (RS/OC) x (OC/CC).")
+print("  NOTE: OC/CC is a RATIO, not a variance share. Var(cc) = Var(co)+Var(oc)+2Cov(co,oc),")
+print("  so the three components are reported separately and must sum to 1.\n")
 print(t.to_string(float_format=lambda x:f"{x:,.3f}"))
 
 fig,axes=plt.subplots(1,2,figsize=(10.4,4.0))
@@ -79,14 +92,15 @@ ax.set_ylim(0,1.35); ax.legend(fontsize=7.2,loc="upper left")
 ps.finish(ax,"A. The benchmark choice drives the verdict",None,None,"Ratio")
 
 ax=axes[1]
-ax.bar(ix,t["overnight share"]*100,color=ps.SERIES["violet"],width=0.55)
-for i,v in enumerate(t["overnight share"]*100):
+ax.bar(ix,t["Var(open) /Var(cc)"]*100,color=ps.SERIES["violet"],width=0.55)
+for i,v in enumerate(t["Var(open) /Var(cc)"]*100):
     ax.text(i,v,f"{v:.0f}%",ha="center",va="bottom",fontsize=8,color=ps.INK_SOFT)
 ax.set_xticks(ix); ax.set_xticklabels([s.replace(" — ","\n") for s in t.index],fontsize=7.5)
 ax.margins(y=0.2)
-ps.finish(ax,"B. Share of daily variance occurring overnight",None,None,"Percent")
+ps.finish(ax,"B. Var(opening return) ÷ Var(close-to-close)",None,None,"Percent")
 ps.header(fig,"Figure 14.  Rogers-Satchell cannot see the overnight gap, so a close-to-close benchmark conflates two effects",
-          "RS is built from open, high, low and close within the session. Comparing it to close-to-close variance mixes\n"
-          "discretisation bias with the overnight variance share — which on NIFTY is 34% of the total.",top=0.82)
+          "RS is built from open, high, low and close within the session, so comparing it to close-to-close variance\n"
+          "mixes estimator error with variation occurring outside the session. Panel B is a ratio, not a share: "
+          "Var(cc)=Var(co)+Var(oc)+2Cov.",top=0.82)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig14_benchmark_diagnosis.{e}")
 plt.close(fig); print(f"\nwrote fig14_benchmark_diagnosis.png")

@@ -53,21 +53,43 @@ print("\n=== TABLE 1: NEPSE stock-day descriptives ===")
 print(t1[["count","mean","1%","10%","50%","90%","99%","max"]].to_string(float_format=lambda x: f"{x:,.4g}"))
 
 # ---------------------------------------------------------------- TABLE 2: friction inventory
+# Standard Rogers-Satchell and Garman-Klass CANNOT be negative on a valid OHLC bar.
+#   RS = ln(H/O)ln(H/C) + ln(L/O)ln(L/C); with H >= max(O,C) and L <= min(O,C) both products
+#        are non-negative.
+#   GK = 0.5 ln(H/L)^2 - (2ln2-1) ln(C/O)^2; a valid bar satisfies |ln(C/O)| <= ln(H/L), so
+#        GK >= (0.5 - (2ln2-1)) ln(C/O)^2 >= 0.
+# A negative value is therefore evidence of an OHLC-INCONSISTENT RECORD, not of estimator
+# failure under illiquidity. Reporting it as a pathology confuses a data defect with a
+# property of the estimator, so negatives are cross-tabbed against violations and reported
+# as such. Zeros are a separate and genuine phenomenon and are split out.
 zero_range = (p["high"] == p["low"])
+viol = ~((p["high"] >= p[["open","close"]].max(axis=1) - 1e-12) &
+         (p["low"]  <= p[["open","close"]].min(axis=1) + 1e-12))
+rs_neg, gk_neg = p["var_rs"] < -1e-15, p["var_gk"] < -1e-15
+rs_zero = p["var_rs"].abs() <= 1e-15
+
 frictions = pd.DataFrame([
-    ("F1  Thin trading: median trades/stock-day",        f"{p['n_trades'].median():.0f}"),
-    ("F1  Stock-days with < 10 trades",                  f"{100*(p['n_trades']<10).mean():.1f}%"),
-    ("F1  Stock-days with < 30 trades",                  f"{100*(p['n_trades']<30).mean():.1f}%"),
-    ("F1  Stock-days with < 100 trades",                 f"{100*(p['n_trades']<100).mean():.1f}%"),
-    ("F7  Zero observed range (H == L)",                 f"{100*zero_range.mean():.1f}%"),
-    ("F7  -> Parkinson variance exactly zero",           f"{100*(p['var_pk']==0).mean():.1f}%"),
-    ("--  Garman-Klass returns NEGATIVE variance",       f"{100*(p['var_gk']<0).mean():.1f}%"),
-    ("--  Rogers-Satchell returns zero variance",        f"{100*(p['var_rs']<=0).mean():.1f}%"),
-    ("F3  Zero close-to-close return (stale price)",     f"{100*(p['cc']==0).mean():.1f}%"),
-], columns=["Friction", "NEPSE"])
+    ("F1  Thin trading: median trades/stock-day",            f"{p['n_trades'].median():.0f}"),
+    ("F1  Stock-days with < 10 trades",                      f"{100*(p['n_trades']<10).mean():.1f}%"),
+    ("F1  Stock-days with < 30 trades",                      f"{100*(p['n_trades']<30).mean():.1f}%"),
+    ("F1  Stock-days with < 100 trades",                     f"{100*(p['n_trades']<100).mean():.1f}%"),
+    ("F7  Zero observed range (H == L)",                     f"{100*zero_range.mean():.1f}%"),
+    ("F7  -> Parkinson variance exactly zero (uninformative)", f"{100*(p['var_pk']==0).mean():.1f}%"),
+    ("--  Rogers-Satchell exactly zero",                     f"{100*rs_zero.mean():.1f}%"),
+    ("      ...of which H == L",                             f"{100*zero_range[rs_zero].mean():.1f}%"),
+    ("      ...remainder are MONOTONE days (a known RS property)", f"{100*(1-zero_range[rs_zero].mean()):.1f}%"),
+    ("F3  Zero close-to-close return (stale price)",         f"{100*(p['cc']==0).mean():.1f}%"),
+    ("DATA  OHLC-inconsistent records",                      f"{100*viol.mean():.2f}%"),
+    ("DATA  Rogers-Satchell negative (impossible if valid)", f"{100*rs_neg.mean():.3f}%"),
+    ("      ...share of those that are OHLC-inconsistent",   f"{100*viol[rs_neg].mean() if rs_neg.any() else 0:.1f}%"),
+    ("DATA  Garman-Klass negative (impossible if valid)",    f"{100*gk_neg.mean():.3f}%"),
+    ("      ...share of those that are OHLC-inconsistent",   f"{100*viol[gk_neg].mean() if gk_neg.any() else 0:.1f}%"),
+], columns=["Friction / data defect", "NEPSE"])
 frictions.to_csv(TAB / "table2_frictions.csv", index=False)
-print("\n=== TABLE 2: friction inventory ===")
+print("\n=== TABLE 2: friction inventory, with data defects separated ===")
 print(frictions.to_string(index=False))
+print(f"\n  negatives among VALID records: RS {100*(rs_neg & ~viol).mean():.4f}%  "
+      f"GK {100*(gk_neg & ~viol).mean():.4f}%   (theory says both must be 0)")
 
 # ---------------------------------------------------------------- FIGURE 1
 fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.1))
