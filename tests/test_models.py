@@ -163,3 +163,49 @@ def test_open_at_prev_close_flags_the_no_match_rule():
         "open": [50.0, 50.0], "high": [50.0, 51.0], "low": [50.0, 49.0], "close": [50.0, 50.5],
     })
     assert bool(flag_limits(df).iloc[1]["open_at_prev_close"])
+
+
+# ── censored opening returns ───────────────────────────────────────────────────
+def test_tobit_recovers_known_sigma_under_heavy_censoring():
+    """The whole point: the censoring POINT is known, so latent sigma is identified even when
+    most observations are pinned. At 57% censoring the naive sd understates by more than half."""
+    from nepsevol.models.censored import tobit_sigma
+    rng = np.random.default_rng(11)
+    true_s, band = 0.035, 0.02
+    obs = np.clip(rng.normal(0, true_s, 30_000), -band, band)
+    out = tobit_sigma(obs, band=band, tol=1e-6)
+    assert out["censored_share"] > 0.5
+    assert out["sigma_naive"] < true_s * 0.6            # naive badly understates
+    assert out["sigma_latent"] == pytest.approx(true_s, rel=0.05)
+
+
+def test_tobit_is_harmless_when_censoring_is_light():
+    """A correction that distorts uncensored data would be worse than none."""
+    from nepsevol.models.censored import tobit_sigma
+    rng = np.random.default_rng(3)
+    true_s, band = 0.004, 0.02
+    obs = np.clip(rng.normal(0, true_s, 20_000), -band, band)
+    out = tobit_sigma(obs, band=band, tol=1e-6)
+    assert out["censored_share"] < 0.01
+    assert out["sigma_latent"] == pytest.approx(true_s, rel=0.05)
+    assert out["inflation"] == pytest.approx(1.0, abs=0.05)
+
+
+def test_tobit_excludes_no_match_zeros_by_default():
+    """An exact-zero open means the auction found no counterparty, not a truncated price move.
+    Counting those as interior zeros drags sigma down."""
+    from nepsevol.models.censored import tobit_sigma
+    rng = np.random.default_rng(5)
+    r = np.clip(rng.normal(0, 0.02, 8000), -0.02, 0.02)
+    padded = np.concatenate([r, np.zeros(4000)])          # 33% spurious no-match zeros
+    kept = tobit_sigma(padded, band=0.02, tol=1e-6, drop_exact_zero=True)
+    counted = tobit_sigma(padded, band=0.02, tol=1e-6, drop_exact_zero=False)
+    assert counted["sigma_latent"] < kept["sigma_latent"] * 0.85
+
+
+def test_analytic_censoring_inflation_matches_simulation():
+    from nepsevol.models.censored import censoring_inflation
+    rng = np.random.default_rng(7)
+    true_s, band = 0.03, 0.02
+    obs = np.clip(rng.normal(0, true_s, 200_000), -band, band)
+    assert censoring_inflation(true_s, band) == pytest.approx(obs.std() / true_s, rel=0.02)

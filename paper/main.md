@@ -248,8 +248,19 @@ For a security that traded twice yesterday, the previous close is itself a poor 
 value; the auction aggregates accumulated interest and corrects it.
 
 > **In ultra-thin securities, price discovery is disproportionately concentrated at the opening
-> auction rather than distributed through continuous trading.** This is a market-microstructure
-> result, not merely a volatility-estimator result.
+> auction rather than distributed through continuous trading.**
+>
+> Stated carefully: this determines *how much of the day's variance an intraday estimator can
+> observe* — a scope fact. It is **not** established that concentration at the open degrades
+> intraday measurement itself. Tested directly, auction concentration adds statistically
+> significant explanatory power for estimator bias beyond trading intensity (p = 2×10⁻⁴) but the
+> effect is economically negligible: the median ratio moves only 1.011 → 1.062 across the full
+> range of the variable. What does predict estimator failure is the auction **failing to clear**
+> (no-match rate, t = −6.5) and the degenerate-observation rate (t = −10.9).
+>
+> One number from that exercise is worth carrying: **trading intensity alone explains 7.7% of the
+> cross-sectional variation in estimator bias.** Every correction in the literature conditions on
+> a liquidity proxy.
 
 **And the band censors it.** The ±2% limit binds on roughly **19–28% of stock-days at every
 liquidity level** — most often, in fact, for the most liquid decile (28.5%). Latent overnight moves
@@ -259,6 +270,48 @@ The consequence cuts against the natural remedy. Parkinson, Garman–Klass and R
 cannot see the opening move at all. Yang–Zhang and GKYZ *can* — but what they see is **censored
 downward on about a fifth of all stock-days**. Recommending estimator families with overnight
 terms is therefore too simple: they observe the right component through a truncated window.
+
+---
+
+## 8.4 Recovering what the band hides
+
+The band censors the opening return **at a point that is known exactly**, which turns the
+institutional obstacle into an identified estimation problem. When the latent clearing price lies
+outside the band the auction clears at the boundary; the observed opening return is then
+right- or left-censored at ±2% (±5% after April 2026). This is a two-sided Tobit, and the latent
+standard deviation is recovered by maximum likelihood from the interior observations plus the
+censored mass.
+
+Validated against known answers before use: at censoring rates of 4.5%, 32%, 57% and 74% the
+estimator recovers the true standard deviation to within 1.3%, while the naive sample standard
+deviation understates by up to 70%. It is also verified to be harmless where censoring is light.
+
+![Figure 17](FIG17)
+
+On 312 securities in the ±2% regime:
+
+| | |
+|---|---|
+| Median share of opens pinned at the band | **27.2%** |
+| Median latent ÷ observed opening volatility | **1.282** |
+| Securities understated by more than 25% | **57.1%** |
+| Daily variance hidden by the band | median **19.9%**, p90 42.2% |
+
+The inflation factor is **roughly flat in liquidity** — 1.17, 1.32, 1.31, 1.27, 1.29 across
+trade-count quintiles spanning 3 to 420 trades per day.
+
+> **This is a market-wide institutional measurement problem, not a thin-trading one.** About a
+> fifth of daily variance is hidden by the band across the entire cross-section. It is orthogonal
+> to the illiquidity mechanism, it has a known censoring point, and it is identified — which no
+> existing correction can claim, because none addresses the opening return.
+
+**Limitation.** For 42 of 354 securities the estimator returns a standard deviation below the raw
+one, which is impossible under the model: their opening returns are bimodal, with mass near zero
+and mass at the band, and a single normal cannot represent that. They are excluded and counted. A
+mixture or fat-tailed innovation would likely fit them, but choosing that distribution after
+seeing which securities failed the first would be the flexibility the analysis plan exists to
+prevent; it belongs in a pre-specified amendment.
+
 
 ### 8.3 A rule change, and a natural experiment
 
