@@ -1,460 +1,334 @@
-# Measuring Volatility Without a Price Path: Range Estimators Under Illiquidity
+# When Continuous Price Discovery Breaks Down: Volatility Measurement in an Ultra-Thin Frontier Market
 
-**Draft v0.1 — 2026-08-27 · not for circulation**
-
-> Toolchain note: drafted in Markdown because no LaTeX/pandoc/Quarto is installed on
-> the working machine (charter Q6, deferred). Section structure is written for a
-> straightforward conversion.
+**Draft v0.3 · 2026-08-27 · not for circulation**
 
 ---
 
-## Abstract *(placeholder — write last)*
+## Abstract
 
-Range-based volatility estimators are the standard recommendation for markets without
-options. We show that this recommendation rests on an assumption that fails precisely
-where it is invoked. Parkinson, Garman–Klass, and Rogers–Satchell estimators assume the
-reported daily high and low are the supremum and infimum of a continuously observed
-diffusion. In an illiquid market they are the extremes of a small, unevenly spaced
-sample of transactions. We decompose the resulting error into three frictions acting in
-two directions, and show that the net bias is **non-monotonic in liquidity** — so no
-single monotone correction can repair it. Using 178,203 stock-days from the Nepal Stock
-Exchange, a market with no derivatives of any kind, we find that at the tenth percentile
-of trading intensity (4 trades per day) range estimators recover well under half of true
-volatility, while close-to-close variance remains unbiased throughout. We characterize
-the crossover point N\* below which the textbook efficiency ranking reverses, and find
-that **25% of NEPSE stock-days fall below it**.
+Range-based volatility estimators are the standard recommendation for markets without options,
+and existing work has established both that infrequent trading biases them downward and that the
+bias can be corrected from daily OHLC alone. We ask where those results stop holding. Using
+178,203 stock-days from the Nepal Stock Exchange — a market with no derivatives of any kind,
+whose median security trades 113 times a day and whose tenth percentile trades four — we document
+three things. First, range estimators do not merely lose precision in this regime: in the least
+liquid decile the Parkinson estimator returns *exactly zero* on 58% of stock-days. Second, the
+failure tracks trading intensity rather than the market: NEPSE's most liquid securities and the
+NIFTY 50 index give statistically indistinguishable estimator ratios using identical code. Third,
+and most consequentially, the reported downward bias of the Rogers–Satchell estimator is largely
+a **benchmark-scope artifact** — measured against a matched intraday benchmark it is 0.965 on the
+NIFTY 50, essentially unbiased. What actually breaks in an ultra-thin market is different and
+more fundamental: price discovery migrates out of the continuous session and into the opening
+call auction, which NEPSE bands at ±2% of the previous close. Between 56% and 83% of daily
+variance in the thinnest securities is realized at the open, and the band censors that opening
+return on roughly a fifth of all stock-days. Estimators built on the intraday session cannot see
+this component; estimators that can see it observe it through a truncated window.
+
+> **Status.** No result below is a confirmatory test unless explicitly labelled. A pre-analysis
+> plan was frozen on 2026-08-27 (`ee17b63a…`); one hypothesis has been validated on held-out data
+> and one has failed. Section 10 states what is not established.
 
 ---
 
 ## 1. Introduction
 
-*(to draft)* Core claims to establish, in order:
+*(to draft — the claims to establish, in order)*
 
-1. The toolkit for markets without derivatives is the range-based family, and its appeal
-   is an efficiency argument: Parkinson is roughly 5× as efficient as close-to-close,
-   Garman–Klass ~7×, Yang–Zhang up to ~14×.
-2. Every one of those efficiency factors is derived under continuous observation of the
-   price path.
-3. That assumption is not a technicality. It is the first thing to fail in the markets
-   where the estimators are most needed.
-4. We decompose the failure into three separately identified frictions, two downward and
-   one upward, and show the net bias is non-monotonic.
-5. The practical consequence inverts standard advice: **below N\* trades per day, the
-   naive close-to-close estimator dominates every range-based alternative.**
+1. The toolkit for markets without derivatives is the range-based family, whose appeal is an
+   efficiency argument: Parkinson (1980) is roughly 5× as efficient as close-to-close.
+2. Those efficiency results are derived under continuous observation of the price path.
+3. That assumption is known to fail under infrequent trading, and the resulting bias is known to
+   be correctable — but the corrections were developed and tested in markets far more liquid than
+   the ones for which they are recommended.
+4. We identify the regime in which they stop working, and show the binding constraint is not
+   estimator bias but **where price discovery happens**.
 
-**Contribution altitude.** The result is not about Nepal. It concerns range estimators
-under illiquidity, and applies wherever trading is thin — small-cap equities, corporate
-bonds, emerging-market FX, private-market marks, and early-stage crypto. NEPSE is used
-because it is an extreme case that identifies the effect sharply, and because the absence
-of derivatives removes the usual escape route of backing volatility out of option prices.
+**Contribution.** Not the discovery of finite-sampling bias, which is long established. The
+boundary: how thin a market must become before the standard toolkit fails, what fails first, and
+why the natural remedy — estimators carrying an overnight term — is itself compromised by the
+institutional design of the opening auction.
 
 ---
 
-## 2. Institutional setting: NEPSE
+## 2. Institutional setting
 
-*(to draft — several items require the deep dives listed in the charter)*
+NEPSE is unusual on four dimensions that jointly matter, and the fourth is the paper's subject.
 
-- No derivatives of any kind. No options, no futures, no ETFs. Volatility cannot be
-  extracted from any traded instrument.
-- **Sunday–Thursday trading week.** Across 3,759 index sessions from 2010 to 2026,
-  Friday appears 24 times (rare special sessions) and Saturday never. The annualization
-  factor is not 252; the weekend gap runs Thursday close → Sunday open.
-- Daily price limits and index-level circuit breakers. **[Q7 — rules and their revision
-  history must be established before this section can be written correctly.]**
-- Structural closures: the 2015 Gorkha earthquake (31 days), COVID-19 (~98 days across
-  two 2020 gaps), and annual Dashain/Tihar closures of 8–12 days.
-- No short selling.
+**No derivatives of any kind.** No options, no futures, no ETFs. Volatility cannot be extracted
+from any traded instrument, which is what makes the market a clean test of estimators intended
+for exactly this situation.
+
+**A Sunday–Thursday trading week.** Across 3,759 index sessions, Friday appears 24 times (rare
+special sessions) and Saturday never. The annualization factor is **222 sessions**, not 252, and
+the weekend gap runs Thursday close → Sunday open. Volatility, range, and trading all peak on
+Sunday, consistent with a two-day accumulation.
+
+**Structural closures.** The 2015 Gorkha earthquake (31 days), COVID-19 (~98 days across two 2020
+gaps), and annual Dashain/Tihar closures of 8–12 days.
+
+**A banded pre-open call auction.** Trading opens with a pre-open session (10:30–10:45) in which
+orders may be placed only within **±2% of the previous close**. The engine clears at the
+volume-maximising price, and **if no orders match, the opening price is set equal to the previous
+close.** Section 8 shows both rules are visible in the data and that they govern what any
+volatility estimator can observe. *(The band was widened to ±5% in April 2026; see §8.3.)*
 
 ---
 
-## 3. Theory: three frictions, two directions
+## 3. Related literature, and what is not claimed here
 
-Let the efficient log price follow a diffusion with daily volatility $\sigma$. An
-estimator sees not the path but $N$ transactions at times $0 \le t_1 < \dots < t_N \le 1$,
-each observed with error.
+Three strands bound this paper, and none is disputed.
 
-### D1 · Undersampling within the traded window
+**Finite-sampling bias is established.** Martens and van Dijk (2007) state that infrequent trading
+biases the realized range downward because observed extremes under- and overstate the true ones,
+and propose a scaling correction. Christensen and Podolskij (2007) derive the asymptotics
+independently; Christensen, Podolskij and Vetter (2009) bias-correct the realized range under
+microstructure noise. Rogers, Satchell and Yoon (1994) had earlier used a proxy for the number of
+transactions to correct the discretisation bias directly.
 
-The observed range is the range of an $N$-sample, not of the path. Since the sample
-maximum is bounded above by the path supremum and the sample minimum bounded below by
-the path infimum, the observed range is **weakly smaller** than the true range, with the
-gap decreasing in $N$. Range-based variance is biased **down**.
+**And it is correctable from daily data.** Maheswaran and Kumar (2013) propose an automatic bias
+correction (ABC) for the Rogers–Satchell estimator that requires **no** knowledge of the number of
+steps and **no** volume-based proxy for it; Kumar and Maheswaran (2014) extend this to the AddRS
+estimator, proved unbiased under a reflection principle, using daily OHLC alone.
 
-### D2 · Traded-window truncation *(new, and specific to illiquid markets)*
+**Range estimators survive moderate illiquidity.** Jacob and Vipul (2008), benchmarking against
+two-scale realized volatility, find daily range estimators *"not downwardly biased in the presence
+of negative autocorrelation and low liquidity, as generally suspected"*, identifying **drift** as
+the main source of Parkinson's problems.
 
-The reported open is the **first trade**, not the price at the opening bell; the reported
-close is the **last trade**. When a security trades rarely, $[t_1, t_N]$ is a strict — and
-possibly small — subinterval of the session. Every OHLC-derived quantity therefore
-describes a shorter interval than the calendar day against which it is compared.
-
-Simulation gives the magnitude directly. The fraction of daily variance spanned by the
-traded window is:
-
-| Trades/day | 2 | 4 | 6 | 10 | 15 | 30 | 73 | 113 | 569 |
-|---|---|---|---|---|---|---|---|---|---|
-| Variance captured | 0.579 | 0.776 | 0.846 | 0.905 | 0.936 | 0.968 | 0.989 | 0.993 | 0.998 |
-
-At two trades per day the OHLC record describes **58%** of the day's variance before any
-undersampling effect is counted. This bias is, to our knowledge, not treated in the
-range-estimator literature, which is written for markets where $t_1 \approx 0$ and
-$t_N \approx 1$ hold by construction.
-
-### U1 · Microstructure noise in the extremes
-
-Observed prices carry bid–ask bounce and transitory impact. The high and low are **order
-statistics**, so they are contaminated far more than the open and close: noise can only
-push the maximum up and the minimum down. Range-based variance is biased **up**, and the
-distortion grows with the number of draws.
-
-### The consequence
-
-D1 and D2 push down and vanish as $N$ grows. U1 pushes up and grows with the number of
-observations, while the per-trade noise itself falls with liquidity. The net bias is
-therefore **non-monotonic in $N$** — which rules out any correction that is monotone in a
-liquidity proxy, the natural first thing a practitioner would reach for.
+> **No novelty is claimed for the finite-sampling mechanism, nor for its correction from daily
+> data.** Both are established. This paper asks where these results cease to apply, and identifies
+> a distinct failure — the location of price discovery — that no existing correction addresses.
 
 ---
 
 ## 4. Data
 
-| Panel | Source | Coverage | Content |
-|---|---|---|---|
-| Index | scraped daily index series | 2010-01-03 → 2026-06-12, 3,759 sessions | OHLC + turnover |
-| A · long | per-company archive | 1995 → 2026, 372 securities, 506,235 stock-days | OHLC + volume + turnover |
-| B · trades | daily cross-sections | 2024-03 → 2026-08, 520 securities | adds **transaction counts** and VWAP |
+| Dataset | Span | Units |
+|---|---|---|
+| NEPSE index, daily OHLC + turnover | 2010-01-03 → 2026-06-12 | 3,759 sessions |
+| NEPSE stock panel B (with trade counts) | 2024-03-04 → 2026-08-26 | 551 sessions × 520 securities |
+| NEPSE stock panel A (long, no trade counts) | 1995 → 2026 | 372 securities, 506,235 stock-days |
+| NIFTY 50 daily OHLCV | 2010-01-04 → 2026-06-12 | 4,037 sessions |
+| India VIX | 2010-01-04 → 2026-06-12 | 4,036 sessions |
 
-Panel B supplies the trading-intensity measure the analysis requires. The analysis sample
-is **178,203 stock-days across 520 securities and 551 sessions**.
+### 4.1 Three data defects, each material
 
-### 4.1 Two data defects that must be handled before anything else
+**Genuine intraday range begins 2016-06-06.** Every earlier index observation satisfies
+`O = H = L = C` with zero reported turnover, so range estimators are undefined — not imprecise —
+on that stretch. The usable index sample is **2,296 sessions**.
 
-**Stale non-trading sessions.** The daily cross-section archive contains files for
-Fridays and Saturdays, on which NEPSE does not trade. On Saturdays, 99.2% of closing
-prices are identical to the previous session's, and on Fridays 87.5% — carried-forward
-records, not sessions. Retaining them would inflate the zero-return friction measure and
-manufacture spurious zero-volatility days. After filtering to Sunday–Thursday, 551
-genuine sessions remain, a rate of **222 sessions per year**, consistent with the
-independently sourced index series.
+**Stale non-trading sessions.** The daily cross-section archive contains files for Fridays and
+Saturdays, on which the exchange does not trade. On Saturdays **99.2%** of closing prices are
+identical to the previous session and on Fridays **87.5%**: these are carried-forward records, not
+sessions. Retaining them roughly doubles the measured zero-return friction and inserts non-events
+into every rolling window. After filtering to Sunday–Thursday, 551 genuine sessions remain — a
+rate of 222 per year, matching the independently sourced index.
 
-**Degenerate index OHLC before 2016-06-06.** Every index observation from 2010-01-03 to
-2016-06-03 satisfies $O = H = L = C$ with zero reported turnover. Range-based estimators
-are undefined on that stretch, reducing the usable index sample to 2,296 sessions. Whether
-this reflects a vendor artifact or exchange practice is unresolved *(charter deep dive)*.
-
-A further 69 index rows inside the usable window violate $H \ge \max(O,C)$ or
-$L \le \min(O,C)$. In the stock panel the violation rate is 0.60% (Panel B) and 8.05%
-(Panel A).
+**Turnover is missing before 2011 and coded as zero.** Across all 3,702 zero-turnover rows in
+panel A, **99.9% have positive volume** and 56% have `H ≠ L`: those securities traded and their
+prices moved. Any turnover-conditioned rule misclassifies them. The affected window is small
+(3,700 rows, 11 securities) but the coding must be corrected.
 
 ---
 
-## 5. How thin is NEPSE?
+## 5. How thin is NEPSE, and what breaks
 
-*(Figure 1, Table 1)*
+![Figure 1](FIG1)
 
-| Statistic | Value |
-|---|---|
-| Median trades per stock-day | **113** |
-| 10th percentile | **4** |
-| 1st percentile | **1** |
-| Stock-days below 10 trades | 14.8% |
-| Stock-days below 30 trades | 25.2% |
-| Stock-days below 100 trades | 46.6% |
+**Trading intensity.** Median **113** trades per stock-day; tenth percentile **4**; first
+percentile **1**. Below 10 trades: 14.8% of stock-days. Below 30: 25.2%. Below 100: 46.6%.
 
-### Estimator pathologies *(Table 2, Figure 5)*
+![Figure 5](FIG5)
+
+**The estimators do not degrade gracefully — they become undefined.**
 
 | Pathology | Share of stock-days |
 |---|---|
-| Zero observed range ($H = L$) → **Parkinson variance exactly zero** | 6.1% |
-| Rogers–Satchell returns zero variance | 15.2% |
+| Zero observed range (`H = L`) → **Parkinson variance exactly zero** | 6.1% |
+| Rogers–Satchell returns zero or negative variance | 15.2% |
 | Garman–Klass returns **negative** variance | 0.5% |
 | Zero close-to-close return (stale price) | 4.0% |
 
-Concentration by liquidity is stark. In the least-liquid decile (median **2** trades per
-day), **Parkinson returns exactly zero on 58.2%** of stock-days. An estimator that reports
-zero volatility on the majority of observations is not a noisy estimator; it is an
-inapplicable one.
+Concentration is stark. In the least liquid decile — median **2** trades per day — **Parkinson
+returns exactly zero on 58.2% of stock-days.** An estimator reporting zero volatility on the
+majority of its observations is not noisy; it is inapplicable.
 
 ---
 
-## 5b. An internal control: the estimators work where they should
+## 6. Cross-market control: the failure tracks trading intensity, not the market
 
-*(Notebook Part 7)*
+The most damaging objection is that something is wrong with NEPSE, its data, or our code rather
+than with range estimators under thin trading. Running identical code across three regimes answers
+it with real data.
 
-A natural objection to everything above is that something is wrong with NEPSE, or with our
-code, rather than with range estimators under thin trading. The index provides the control.
-It aggregates every listed security and is therefore the most densely traded series in this
-market — the closest thing NEPSE has to the conditions the estimators assume.
+![Figure 12](FIG12)
 
-Measured relative sampling efficiency against close-to-close on the index, versus the
-textbook values derived under continuous observation:
+| Regime | Trades/day | Parkinson ÷ open-to-close | Zero-range days |
+|---|---|---|---|
+| **NIFTY 50 index** | dense | **0.978** | 0.00% |
+| NEPSE stocks | ~679 | **0.977** | 0.00% |
+| NEPSE stocks | ~153 | 1.050 | 0.01% |
+| NEPSE stocks | ~30 | 0.897 | 0.11% |
+| NEPSE stocks | ~3 | **0.796** | **36.21%** |
 
-| Estimator | Measured on NEPSE index | Textbook |
-|---|---|---|
-| Parkinson | **4.67×** | ≈ 5× |
-| Garman–Klass | **6.48×** | ≈ 7× |
-| Rogers–Satchell | 5.01× | ≈ 8× |
-| Yang–Zhang | **20.4×** | up to 14× |
-
-The machinery reproduces the canonical efficiency gains almost exactly where trading is
-dense. The failures documented in §5–§7 are therefore a property of thin trading, not of the
-market, the data, or the implementation.
-
-**A caution against reading the levels.** The same table shows mean annualized σ̂ of 20.2%
-(close-to-close) against 16.7% (Parkinson), 15.3% (Garman–Klass), and 14.7%
-(Rogers–Satchell). Most of that gap is *not* bias: close-to-close includes overnight
-variance while Parkinson, Garman–Klass and Rogers–Satchell measure the intraday session
-only. The comparison that isolates bias is the matched open-to-close benchmark used in §7,
-not this one. The one figure that resists an overnight explanation is GKYZ, which *does*
-include an overnight term and still comes in at 16.0% — worth a separate look.
-
-## 5c. Non-synchronous trading, and a sign that flips with aggregation
-
-*(Notebook Part 4)*
-
-The index return series is **positively autocorrelated at short lags** — lag-1 ACF ≈ +0.10,
-well outside the 95% band, Ljung–Box p ≈ 4 × 10⁻⁷. In a deep market that would be a tradable
-anomaly. Here it is the classic non-synchronous-trading signature: an index built from
-thinly traded constituents inherits stale component prices, so part of today's information
-arrives in tomorrow's index level.
-
-The sign **flips with aggregation**, and the flip is diagnostic:
-
-| Level | Lag-1 return autocorrelation | Mechanism |
-|---|---|---|
-| Individual thin securities | **−0.22** | bid-ask bounce |
-| Index of those same securities | **+0.10** | stale constituent prices |
-
-Two illiquidity mechanisms dominate at two levels of aggregation and push in opposite
-directions. A correction calibrated at one level and applied at the other gets the sign
-wrong — a further reason (alongside §7b) why a single scalar liquidity adjustment cannot be
-made to work.
-
+NEPSE's most liquid securities and the NIFTY 50 are **statistically indistinguishable**. The point
+agreement should not be over-read: a block bootstrap puts NIFTY's own 95% interval at
+**[0.947, 1.021]**, so agreement to three decimals is far finer than the sampling uncertainty
+supports and is coincidence. Indistinguishability is the defensible claim, and it suffices —
+identical code gives the same answer wherever trading is dense, so departures elsewhere are a
+property of trading intensity.
 
 ---
 
-## 6. Simulation: bias and the crossover N\*
+## 7. Diagnosing the reported bias: benchmark scope
 
-*(Figures 2, 3, 6; Tables 4, 5, 7)*
+Maheswaran and Kumar (2013) report a variance ratio of **0.82** for the Rogers–Satchell estimator
+against the "usual" close-to-close estimator on the Nifty index, attributing the shortfall to the
+random-walk effect. Attempting to replicate this exposes a decomposition.
 
-True $\sigma$ = 2%/day; 4,000 days × 15 replications per grid point.
+Rogers–Satchell is built from `ln(H/O)`, `ln(L/O)` and `ln(C/O)`. It is an **open-to-close**
+estimator and cannot observe the overnight gap. The "usual" estimator spans the full calendar day.
+Their ratio factors exactly:
 
-**Level bias** — estimated $\sigma$ ÷ true $\sigma$:
+$$\text{RS} / \text{CC} \;=\; \underbrace{(\text{RS}/\text{OC})}_{\text{genuine bias}} \times \underbrace{(\text{OC}/\text{CC})}_{\text{share the estimator can see}}$$
 
-| Trades/day | Close-to-close | Parkinson | Garman–Klass | Rogers–Satchell |
+![Figure 14](FIG14)
+
+| Market | RS ÷ CC | RS ÷ OC | OC ÷ CC | Overnight share |
 |---|---|---|---|---|
-| 2 | 1.002 | 0.344 | 0.193 | 0.000 |
-| 4 | 1.003 | 0.534 | 0.404 | 0.352 |
-| 10 | 1.000 | 0.712 | 0.621 | 0.601 |
-| 4,000 | 0.995 | 0.976 | 0.968 | 0.969 |
+| **NIFTY 50 index** | 0.671 | **0.965** | 0.695 | **34.3%** |
+| NEPSE index | 0.534 | 0.542 | 0.985 | 4.5% |
+| NEPSE stocks — dense | 1.084 | 0.968 | 1.120 | 28.0% |
+| **NEPSE stocks — thin** | **0.222** | 0.643 | **0.346** | **82.3%** |
 
-Close-to-close is unbiased at every trading intensity — it uses only closing prices and
-so is immune to D1 and U1 alike. The range family degrades severely.
+**On the NIFTY 50, Rogers–Satchell measured against a matched intraday benchmark is 0.965 —
+essentially unbiased.** The reported shortfall is overwhelmingly the third of daily variance that
+occurs overnight, which the estimator cannot observe by construction. *(Our level is 0.671 against
+their 0.82 on a different window, 2010–2026 versus 1996–2011; the levels are not comparable but
+the decomposition is exact regardless.)*
 
-**The crossover.** Comparing RMSE of a rolling 21-day $\hat\sigma$:
+This is not a criticism of ABC or AddRS. **They solve a different measurement problem**: they
+correct the measurement of within-session volatility, and do not claim to convert a within-session
+estimator into a full close-to-close estimator when opening repricing is economically large.
 
-| Estimator | N\* | Share of NEPSE stock-days below N\* |
+---
+
+## 8. Where price discovery actually happens
+
+### 8.1 The mechanical channel must be excluded first
+
+A security that trades **once** has `O = H = L = C`, so its intraday return is zero *by
+construction* and the entire daily move is forced into the opening return. That is not price
+discovery migrating; it is intraday variance being unobservable. It applies to 22.3% of thin
+stock-days.
+
+Removing degenerate days is itself not clean — it conditions on intraday movement having
+occurred, which deflates the opening share. The two treatments **bracket** rather than identify:
+
+> For the thinnest NEPSE securities the opening share of daily variance lies between roughly
+> **56% and 83%**, against **21%** for the most liquid. The contrast is large and robust; the
+> point estimate is **not identified** by either treatment.
+
+### 8.2 The opening auction, and its band
+
+![Figure 15](FIG15)
+
+Both auction rules leave clear fingerprints:
+
+| Fingerprint | Value |
+|---|---|
+| Non-zero opening returns within \|r_co\| ≤ 2.0% | **91.3%** |
+| Pile-up in (1.9%, 2.1%] — pinned at the band | **23.2%** |
+| p90 / p95 of \|r_co\| | 2.00% / 2.02% |
+| Open exactly equal to previous close (no-match rule) | 10.8% (17.3% in the thinnest decile) |
+
+The opening return is therefore not overnight news. It is a composite of overnight information,
+opening-auction price discovery, correction of a stale previous close, and auction microstructure.
+For a security that traded twice yesterday, the previous close is itself a poor reading of latent
+value; the auction aggregates accumulated interest and corrects it.
+
+> **In ultra-thin securities, price discovery is disproportionately concentrated at the opening
+> auction rather than distributed through continuous trading.** This is a market-microstructure
+> result, not merely a volatility-estimator result.
+
+**And the band censors it.** The ±2% limit binds on roughly **19–28% of stock-days at every
+liquidity level** — most often, in fact, for the most liquid decile (28.5%). Latent overnight moves
+larger than the band cannot be incorporated at the open.
+
+The consequence cuts against the natural remedy. Parkinson, Garman–Klass and Rogers–Satchell
+cannot see the opening move at all. Yang–Zhang and GKYZ *can* — but what they see is **censored
+downward on about a fifth of all stock-days**. Recommending estimator families with overnight
+terms is therefore too simple: they observe the right component through a truncated window.
+
+### 8.3 A rule change, and a natural experiment
+
+Monthly fingerprints locate a sharp regime change. Through 2026-03 the 95th percentile of the
+opening return is pinned at 2.01% every month; from **April 2026** it jumps to ~4.9%, the boundary
+pile-up collapses from ~30% to ~3%, and the share of opens exceeding the old band rises from ~0%
+to ~28%. This is consistent with the pre-open band being widened from ±2% to ±5%.
+
+This is a sharp, exogenous, precisely-dated change in censoring width with a natural
+treatment-intensity measure. **It is not exploited here:** the window has been inspected, so any
+test run now would be exploratory, and the governing circular has not been read — if trading hours
+or continuous-session limits changed simultaneously, the treatment is confounded.
+
+---
+
+## 9. Validation on held-out data
+
+Panel A restricted to **1995 → 2024-03-03** was not used for hypothesis testing, model selection,
+or visualization. Prior exposure is disclosed: its dimensions, aggregate OHLC violation rate
+(8.05%) and zero-range rate (4.12%) had been computed, and the violation rate informed the choice
+of cleaning rule. This is therefore **pre-specified validation on minimally inspected historical
+data**, not a sealed confirmatory hold-out.
+
+![Figure 13](FIG13)
+
+Executed once, under the frozen plan, on **325,901 stock-days across 309 securities**:
+
+| Hypothesis | Primary statistic | Result |
 |---|---|---|
-| Parkinson | **33** | ~26% |
-| Garman–Klass | **49** | ~31% |
-| Rogers–Satchell | **73** | ~38% |
+| **H1** — the ratio increases with trading intensity in the thin region | β₁ on ln N̂, buckets N̂ < 30 | **+0.0802**, wild cluster bootstrap **p = 0.0001** — SUPPORTED |
+| **H2** — the net bias is non-monotonic in intensity | β₂ on (ln N̂)² | **FAILED** |
 
-Below N\* the textbook efficiency ranking **reverses**: the estimator with no theoretical
-efficiency advantage strictly dominates.
+**H1 is robust.** Under a pre-specified robustness check bucketing on raw turnover — no
+calibration, no generated regressor, no functional form — the profile is monotone across all ten
+deciles (0.740 → 0.966, Spearman +0.514, p = 8×10⁻¹¹) and the coefficient strengthens (t = 9.19).
+Inference was audited: with only 14 year-clusters the asymptotic cluster p-value (8×10⁻²²) is
+optimistic; the bootstrap figure is the one reported.
 
----
-
-## 7. Does the predicted bias appear in the data?
-
-*(Figure 4, Table 6)*
-
-Partly. The match is close at both ends of the liquidity range and fails in the middle — and
-that failure is informative rather than fatal.
-
-Within-bucket ratio of Parkinson variance to the matched open-to-close benchmark, against
-the simulated prediction. **No parameter is fitted to the NEPSE data.**
-
-| Median trades | Observed | Predicted (D1+D2 only) |
-|---|---|---|
-| 6 | 0.728 | 0.734 |
-| 15 | 0.867 | 0.819 |
-| 30 | 0.991 | 0.870 |
-| 73 | 1.076 | 0.907 |
-| 1,168 | 0.968 | 0.974 |
-
-At low liquidity the match is close to exact (0.728 observed vs 0.734 predicted at six
-trades per day) and it converges again at high liquidity. In between, the observed ratio
-runs **above** the prediction and rises above one — precisely the signature of U1, which
-the D1+D2 prediction omits by construction. Adding microstructure noise to the simulation
-reproduces the direction and shape of the gap *(Figure 6)*.
-
-The observed pattern is therefore **hump-shaped in liquidity**, as the three-friction
-account requires and as a pure undersampling account cannot produce.
-
-> **Open issue.** The least-liquid bucket (median 1 trade/day) is not yet interpretable:
-> with a single transaction, $O = H = L = C$, so numerator and denominator degenerate
-> together and the ratio is not identified. It is excluded from the fit and requires a
-> separate treatment.
+**H2 failed and the verdict is permanent.** The pre-registered quadratic cannot distinguish an
+interior maximum from simple concavity: its implied turning point is N̂ ≈ 1129, outside the
+observed range and 7× the descriptive peak, and under turnover ranking the profile has no peak at
+all. The hypothesis is neither confirmed nor rejected — the *test* was uninformative about the
+claim it was meant to adjudicate. No re-specification was attempted.
 
 ---
 
-## 7b. Identifying the upward friction directly
+## 10. What is not established
 
-*(Figures 7–8, Tables 8–9)*
+Stated plainly.
 
-Section 7 attributes the mid-liquidity gap to noise in the observed extremes, but infers
-it from a residual. Microstructure diagnostics measure it.
-
-**The bounce signature is unambiguous.** Per-security lag-1 return autocorrelation and
-five-day variance ratios, by liquidity octile:
-
-| Median trades/day | 2 | 8 | 37 | 85 | 134 | 186 | 265 | 455 |
-|---|---|---|---|---|---|---|---|---|
-| AC₁ of returns | **−0.195** | **−0.219** | −0.065 | −0.008 | +0.031 | +0.005 | +0.016 | **+0.036** |
-| Variance ratio VR(5) | 0.520 | 0.533 | 0.841 | 0.941 | 0.941 | 0.972 | 1.015 | 1.073 |
-
-Monotone from strongly negative to mildly positive. Negative autocorrelation with VR < 1
-is the textbook bid-ask bounce signature, and it is concentrated exactly where the
-range-estimator gap is largest.
-
-**The bounce explains the gap.** Regressing the per-security gap (observed minus
-undersampling prediction) on measured bounce, controlling for trading intensity:
-
-| | (1) liquidity only | (2) + bounce |
-|---|---|---|
-| Bounce (−AC₁) | — | **0.225** (t = 6.4) |
-| log trades/day | −0.005 (t = −2.0) | +0.007 (t = 2.8) |
-| R² | 0.013 | **0.139** |
-| N securities | 371 | 371 |
-
-Bounce enters at p = 1.4 × 10⁻¹⁰ and raises explained variation roughly tenfold. The sign
-on liquidity **flips** once bounce is included — omitted-variable bias, since spread and
-trading intensity are strongly correlated. This is why a correction indexed on liquidity
-alone cannot work: liquidity proxies for two frictions pulling in opposite directions.
-
-> **Measurement choice, and why.** The primary noise proxy is −AC₁ rather than the Roll
-> (1984) spread. Roll is undefined wherever the return autocovariance is non-negative,
-> which is *precisely where bounce does not dominate* — it is missing non-randomly, on 41%
-> of securities. Conditioning on it selects the subsample in which the hypothesised force
-> is already present. On that selected subsample Roll does enter positively but only
-> marginally (coefficient 2.09, t = 1.9, p = 0.052, R² = 0.040), and it is reported as a
-> cross-check rather than as the test. Corwin–Schultz is deliberately **not** used as
-> evidence: it is itself a range-based estimator and inherits the biases under study.
-
-**Volatility clustering.** AC₁ of squared returns runs 0.14 in the thinnest octile against
-0.23–0.27 in liquid ones — persistence is present throughout but attenuated where trading
-is thin, consistent with stale prices masking the true volatility process. This bears on
-whether GARCH-family models are estimable on frontier cross-sections at all.
-
+- **No benchmarking against ABC or AddRS.** Their formulae were not obtainable. No comparative
+  claim about any correction proposed here is admissible until this is done. **This is the
+  single most important outstanding item.**
+- **The opening share of variance is bracketed, not identified** (§8.1).
+- **The `C → O_auction → P_first-continuous → C` decomposition** that would separate auction price
+  discovery from overnight information requires transaction data not held.
+- **A no-match open cannot be cleanly distinguished** from an auction clearing at the previous
+  close without pre-open session identifiers; `O = C₋₁` is a noisy indicator.
+- **The April 2026 rule change is unverified against the governing circular** and unexploited.
+- **Circuit-breaker censoring of the continuous session is unmodelled.**
+- **H2 is unresolved**, deferred to a hold-out with genuine trade counts.
+- Panel A's 8.05% OHLC violation rate versus panel B's 0.60% is unexplained.
 
 ---
 
-## 7c. Forecast evaluation: the range information is worth having
+## References
 
-*(Model notebook, Parts 1–3)*
+*(to verify against sources before submission)*
 
-Sections 5–7 measure *level bias*. This section asks a different and more practical question:
-which volatility measure produces the best **forecast**? It matters because it can be answered
-without ground truth. Future squared returns are a noisy but unbiased proxy for future
-variance, so averaging a proxy-robust loss over many days ranks forecasts consistently — the
-Andersen–Bollerslev argument. Loss choice is not free: Patton (2011) shows most intuitive
-losses, including MAE and anything applied to σ rather than σ², rank forecasts incorrectly
-under a noisy proxy. We use QLIKE and MSE.
-
-Eleven forecasts, evaluated on ~690 out-of-sample days:
-
-| Model | QLIKE | MZ slope *b* | *t*(b=1) | In 90% MCS |
-|---|---|---|---|---|
-| HAR–GKYZ | **−7.878** | **1.017** | 0.08 | ✓ |
-| HAR–Garman–Klass | −7.873 | 0.920 | −0.40 | ✓ |
-| HAR–Parkinson | −7.838 | 0.930 | −0.35 | ✓ |
-| GARCH(1,1)-t | −7.836 | 0.511 | **−3.98** | ✓ |
-| GJR-GARCH-t | −7.835 | 0.555 | **−3.31** | ✓ |
-| EWMA (λ=0.94) | −7.707 | 0.554 | −2.80 | ✗ |
-| Constant | −7.737 | — | — | ✗ (p=0.057) |
-| HAR–Close-to-close | −7.330 | 0.196 | −17.2 | ✗ |
-
-Two findings.
-
-**Range-based HAR forecasts are the only ones that pass Mincer–Zarnowitz.** Their slopes are
-statistically indistinguishable from one; every GARCH-family forecast is significantly biased,
-under-responding to variation in true volatility (b ≈ 0.51–0.55).
-
-**HAR on close-to-close is eliminated while HAR on range measures survives.** The range
-information genuinely improves forecasts even though those same measures are biased in levels.
-
-This substantially revises the practical recommendation of §8. The earlier reading — "below
-N\*, abandon the range estimator for close-to-close" — is right about *levels* and wrong about
-*forecasts*. The range measures are **biased but informative**; close-to-close is **unbiased but
-mostly noise**. The correct response is to bias-correct the range estimator, not to discard it.
-That is what "adapting the method" means, and §7d does it.
-
-## 7d. Bias identified without ground truth, and corrected
-
-*(Model notebook, Parts 4–6)*
-
-Treating log-variance as a latent AR(1) observed through biased noisy measurements makes the
-measurement intercepts estimates of estimator bias — recovered from data, with no ground truth.
-
-This requires a correction that is easy to miss. E[log X] ≠ log E[X], and the Jensen gap
-differs sharply between estimators: −1.27 for a squared return against ≈ −0.22 for the log
-range. Fitting to raw log variances recovers *the difference in Jensen constants*, not bias —
-in our first attempt this produced a spurious 1.74× "bias" for Parkinson. The constants are
-properties of each estimator's sampling distribution, so they are calibrated once by simulation.
-
-**Two independent routes to the bias curve now broadly agree.** Simulation (known truth, models
-D1+D2 only) and the latent-state model (no truth, filters the data) correlate at 0.72 across
-liquidity buckets. Where they diverge is itself informative: in mid-liquidity buckets the
-data-derived estimate runs *above* the simulation (≈1.09 vs ≈0.92), which is exactly the U1
-microstructure-noise signature that the D1+D2 simulation omits by construction — the same gap
-§7 found by a completely different method.
-
-**The correction works out of sample.** Fitted on training data only, conditioning on trading
-intensity *and* bounce, and applied to a held-out period: median bias falls from 0.940 to
-**0.994**, and RMSE against unbiasedness falls **17.8%**.
-
-
----
-
-## 8. Implications
-
-1. **For frontier-market research.** The default recommendation — use range estimators when
-   there are no options — is wrong *for levels* below N\*, but the range information is still
-   worth having *for forecasting* (§7c). Bias-correct the range estimator rather than discard
-   it, and report trade counts alongside any range-based estimate or it cannot be assessed.
-2. **No monotone correction exists.** Because the frictions act in opposite directions,
-   a single liquidity-indexed adjustment cannot repair the bias.
-3. **Liquidity alone is the wrong conditioning variable.** It proxies for both the downward
-   frictions and the upward one. A correction must condition on trading intensity **and** a
-   noise measure separately (§7b).
-4. **Beyond frontier markets.** Any thinly traded asset is exposed: small caps, corporate
-   bonds, emerging FX, private-market marks.
-5. **D2 is general.** Traded-window truncation applies to every OHLC-derived measure in
-   every market, and is invisible where trading is continuous.
-
----
-
-## 9. What this draft does not yet establish
-
-Stated plainly; each is tracked in the charter.
-
-- **No external validation yet.** The S&P 500 and Nifty 50 rungs are not built. Until the
-  extrapolation is tested one rung out, the NEPSE numbers rest on simulation plus one
-  market.
-- **Circuit breakers are not yet modelled** (charter Q7). Price-limit censoring is a
-  fourth friction and is currently absent from the decomposition.
-- **No pre-analysis plan is frozen.** Every result above is **exploratory** and may not be
-  reported as a confirmatory test.
-- The 1-trade bucket is unresolved (§7).
-- Panel A's 8.05% OHLC violation rate is far above Panel B's 0.60% and is unexplained.
-- GKYZ includes an overnight term yet still sits ~20% below close-to-close on the index (§5b);
-  not yet diagnosed.
-- Rogers–Satchell's measured index efficiency (5.0×) falls well short of its textbook value
-  (≈ 8×) even on the densest series available. Unexplained.
-
----
-
-## References *(to verify against sources before citing — none checked yet)*
-
-Parkinson (1980) · Garman & Klass (1980) · Beckers (1983) · Rogers & Satchell (1991) ·
-Yang & Zhang (2000) · Alizadeh, Brandt & Diebold (2002) · Lesmond, Ogden & Trzcinka (1999) ·
-Chou (2005) · Wei (2002) on price-limit censoring · Andersen & Bollerslev on realized measures
+Beckers (1983) · Christensen & Podolskij (2007) · Christensen, Podolskij & Vetter (2009) ·
+Corsi (2009) · Garman & Klass (1980) · Jacob & Vipul (2008) · Kumar & Maheswaran (2014) ·
+Maheswaran & Kumar (2013) · Martens & van Dijk (2007) · Parkinson (1980) · Patton (2011) ·
+Rogers & Satchell (1991) · Rogers, Satchell & Yoon (1994) · Yang & Zhang (2000)
