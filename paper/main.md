@@ -4,6 +4,25 @@
 
 ---
 
+> ### ⚠ Retraction in progress — sample universe (2026-08-27)
+>
+> This draft's central empirical claim is **withdrawn pending a decision on the sample universe.**
+> NEPSE's daily files carry no instrument-type field, and the liquidity quintiles used throughout
+> Sections 5–6 turn out to be **instrument-class quintiles**: the two "illiquid" quintiles contain
+> **four ordinary equities between them, out of 209 securities** — the rest are corporate
+> debentures, closed-end mutual funds, and restricted promoter shares, which are illiquid because
+> of what they are and not because Nepal is a frontier market.
+>
+> Restricted to the 291 ordinary common equities, participation is 1.000 in **every** quintile,
+> `P(H=L)` never exceeds 1.3%, and `RS/Var(x)` runs 1.184 → 0.857. **NEPSE's ordinary equity
+> market is liquid enough for range estimators to work.** Sections 5, 6 and the horizon analysis
+> are computed on a universe that is 40% non-equity and must be rebuilt or re-scoped — see §5c
+> and DD-018.
+>
+> Unaffected: the AddRS derivation and over-supply result, the censored-open Tobit, the trading
+> calendar, the closing-rule experiment, and all simulation evidence — none of which depend on
+> the NEPSE cross-section.
+
 ## Abstract
 
 Range-based volatility estimators are the standard recommendation for markets without options,
@@ -190,6 +209,59 @@ inapplicable as a volatility proxy.
 
 ---
 
+---
+
+## 5c. The liquidity quintiles are instrument-class quintiles
+
+Every liquidity statistic above pools ordinary equity with corporate debentures, closed-end mutual
+funds, and restricted promoter shares. NEPSE publishes no instrument-type field, so this went
+unchecked. Type is recoverable from the ticker convention and confirmable against par value, and
+the confirmation is unusually clean: sorted median closes run 8.56 … 10.78, then **nothing until
+100.00**, so the 51 closed-end funds (par 10) identify themselves by price alone with no
+judgement. Debenture tickers land 81-of-82 inside [986, 1215] — a bond distribution around par
+1,000.
+
+| Quintile | debenture | **equity** | fund | promoter | non-equity |
+|---|---|---|---|---|---|
+| **Q1** | 73 | **1** | 0 | 78 | **99.3%** |
+| **Q2** | 11 | **3** | 32 | 11 | **94.7%** |
+| Q3 | 0 | 80 | 19 | 4 | 22.3% |
+| Q4 | 0 | 105 | 0 | 0 | 0.0% |
+| Q5 | 0 | 102 | 1 | 0 | 1.0% |
+
+Restricted to the 291 ordinary common equities, with no liquidity filter applied:
+
+| Equity quintile | securities | participation | trades/day | P(H=L) | RS/Var(x) |
+|---|---|---|---|---|---|
+| Q1 | 59 | **1.000** | 49 | 1.3% | 1.184 |
+| Q2 | 58 | 1.000 | 106 | 0.1% | 1.202 |
+| Q3 | 59 | 1.000 | 171 | 0.0% | 1.106 |
+| Q4 | 57 | 1.000 | 262 | 0.0% | 0.999 |
+| Q5 | 58 | 1.000 | 486 | 0.0% | 0.857 |
+
+> **The thinnest equity quintile trades 49 times a day.** Participation is 1.000 throughout, the
+> 1st percentile of equity participation is 0.920, and exactly two equities fall below 0.90.
+> `P(H=L)` never exceeds 1.3% and `RS/Var(x)` stays near one. The estimator failure documented in
+> §5 is a property of instrument type — plus three extreme cases: NLO, and the blue chips BNL and
+> UNL, whose median closes are ₨16,290 and ₨46,888 against negligible free float. Those three
+> carry **97.6%** of the cross-sectional variance in `P(H=L)`; dropping them takes the
+> participation R² from 0.851 to **0.040**.
+
+### A data screen that matches the estimator
+
+The cleaning filtered `|ln(C/C₋₁)| < 0.5` and never screened the range. A corrupted high or low
+leaves the close untouched, passes every return-based screen, and contaminates exactly the inputs
+a range estimator consumes. One record — SJLICP, a low of 100 (exactly par) against an open of 383
+on three trades — supplied **82.1%** of the summed Rogers–Satchell variance of the thinnest
+quintile. For every other quintile the largest single row contributes 0.1–0.3%.
+
+The replacement is rules-derived rather than a percentile. The high may exceed the previous close
+by at most +L and the low may fall below it by at most −L, so a legal session satisfies
+`log(H/L) ≤ log((1+L)/(1−L))`: **0.2007** under the ±10% limit, **0.3023** under ±15%. The data
+confirm the bound — the widest legal session in the sample is 0.3016, sitting on the ceiling, then
+a gap to 1.569. The screen flags **3 rows in 184,394**, all non-equity.
+
+
 ## 6. Cross-market control: the failure tracks trading intensity, not the market
 
 The most damaging objection is that something is wrong with NEPSE, its data, or our code rather
@@ -303,9 +375,12 @@ sessions, block-bootstrap intervals over dates.
 **NIFTY is stable and near one throughout** (0.965 → 0.999), which validates the construction.
 
 **The thinnest bucket cannot be measured at long horizons**, and its curve is confounded by
-survivorship in any case: at K=20 only **7%** of Q1 securities can produce a bar, those survivors
-have nearly triple the bucket's participation rate, and their K=1 ratio is **0.234** against
-**0.912** for Q1 as a whole. The curve traces composition, not horizon. Q3, by contrast, retains
+survivorship in any case: at K=20 only **7%** of Q1 securities can produce a bar, and those
+survivors have nearly triple the bucket's participation rate. The curve traces composition, not
+horizon. (The K=1 comparison figure originally given here, 0.234 against 0.912, is withdrawn: the
+0.912 was produced by the single corrupted record identified in §5c. The screened value is 0.167.
+The composition drift is real; its magnitude as stated was not. And per §5c this bucket holds one
+ordinary equity, so the comparison is in any case not a liquidity comparison.) Q3, by contrast, retains
 89% with participation unchanged and a K=1 ratio of 1.208 on the survivor cohort against 1.201 for
 the full bucket — so **Q3's rise to 1.288 is a genuine horizon movement**, and it is the one
 horizon result that survives.
