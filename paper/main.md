@@ -266,12 +266,58 @@ NIFTY is the one case where RS is genuinely below one, and the one case where Ad
 1.005. In NEPSE Q2–Q5 there is **no downward bias to repair**.
 
 > **The correct statement is not that AddRS fails, but that its premise does not hold outside the
-> thinnest bucket.** Applying a downward-bias correction where the estimator is not
-> downward-biased adds bias rather than removing it. No microstructure mechanism is required, and
-> the boundary is a condition on the *diagnosis*, not on the estimator.
+> thinnest bucket.** Applying a downward-bias correction where the daily departure is not a
+> downward one adds bias rather than removing it. The boundary is a condition on the *diagnosis*,
+> not on the estimator.
+
+**Two cautions on how that is phrased.** First, `RS/Var(x) > 1` is *not* evidence that RS is
+upward-biased. Since `RS = h(h−x) + (−l)(x−l)` — an upward excursion times its retracement plus a
+downward excursion times its rebound — a ratio above one can equally mean large intraday excursion
+relative to terminal displacement. A session with `O=100, H=110, L=90, C=100` has `x = 0` and a
+large RS. RS and the open-to-close variance share a target only under Brownian motion.
+
+Second, AddRS is not *accurate* even where the sign is right. Comparing the correction required to
+reach the benchmark, `R = 1 − RS/Var(x)`, with the correction supplied, `D = (AddRS − RS)/Var(x)`:
+NIFTY needs +0.035 and gets +0.049 (1.4×); Q1 needs +0.317 and gets +0.818 (2.6×); Q2–Q4 need a
+*negative* adjustment and get a positive one. AddRS is merely least wrong on NIFTY.
 
 Cluster-bootstrapped by security, the overshoot is 1.239 [1.214, 1.266] — the interval excludes
 one, so it is real.
+
+### The horizon test
+
+Under Brownian motion RS and the terminal variance share a target, so aggregating K consecutive
+sessions into one bar should push the ratio toward one as the approximation improves. The
+interpretation is fixed by the literature in advance rather than inferred from NEPSE.
+
+![Figure 20](FIG20)
+
+| K | NIFTY | Q1 | Q3 | Q5 |
+|---|---|---|---|---|
+| 1 | 0.965 | **0.535** | **1.290** | 0.978 |
+| 2 | 1.012 | 0.336 | 0.732 | 0.859 |
+| 10 | 0.926 | 0.876 | 0.737 | 0.989 |
+| 20 | 0.819 | **1.011** | 0.830 | 1.010 |
+
+**The thinnest regime behaves exactly as finite-sampling theory predicts.** Q1's daily deficit of
+0.535 resolves *completely* by K=20 (1.011), climbing monotonically from K=2. Give the estimator
+twenty sessions of price path and the deficit disappears. This is the mechanism confirmed at the
+horizon where it should vanish — and it is the strongest evidence in the paper for the
+finite-sampling account.
+
+**The daily excess above one is a single-session effect.** Q2–Q4 sit at 1.09–1.29 at K=1 and
+collapse to ~0.70 at K=2. Whatever produces it does not survive pairing two sessions.
+
+**What is not established:** Q2–Q4 then settle at 0.67–0.83 and do not converge to one. That is
+unexplained and is the live question. NIFTY is uninterpretable at long horizons — its K=20
+estimate rests on 201 bars against 1,500+ per NEPSE bucket, so the 0.82–1.15 wobble is sampling
+noise.
+
+> **The statement that survives.** At the daily horizon the RS-to-terminal-variance ratio departs
+> from one **in both directions** across liquidity regimes, and only the thinnest regime's
+> departure behaves as finite-sampling theory predicts. A correction built exclusively for that
+> mechanism cannot be applied on a trade-count diagnosis alone.
+
 
 ### An institutional experiment, and what it does and does not show
 
@@ -523,8 +569,9 @@ Stated plainly.
   this gap; ABC's procedure is empirical and its exact form remains paywalled. The paper no longer
   claims existing corrections "cease to apply" — it reports that AddRS repairs the failure it
   targets and is defeated by a different one.
-- **Why RS is *not* downward-biased in NEPSE Q2–Q5 is unexplained.** That is now the open
-  question the AddRS result raises, and it is more interesting than the overshoot itself.
+- **Why NEPSE Q2–Q4 settle at RS/Var(x) ≈ 0.67–0.83 at long horizons, rather than converging to
+  one, is unexplained.** The daily excess is accounted for as a single-session effect; the
+  long-horizon deficit is not. This is the live question.
 - **The AddRS overshoot is not monotone in trading intensity** (1.16 → 1.30 → 1.20); unexplained.
 - **The A–B–A treatment is not clean**: changing the close also changes `x = ln(C/O)`, perturbing
   both the trigger and the magnitude of the correction term.
