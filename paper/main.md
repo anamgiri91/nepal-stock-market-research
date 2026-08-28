@@ -287,37 +287,51 @@ one, so it is real.
 ### The horizon test
 
 Under Brownian motion RS and the terminal variance share a target, so aggregating K consecutive
-sessions into one bar should push the ratio toward one as the approximation improves. The
-interpretation is fixed by the literature in advance rather than inferred from NEPSE.
+sessions into one bar should push the ratio toward one as the approximation improves. Overlapping
+rolling windows, buckets fixed once per security, every bar asserted to span K **consecutive**
+sessions, block-bootstrap intervals over dates.
 
 ![Figure 20](FIG20)
 
-| K | NIFTY | Q1 | Q3 | Q5 |
-|---|---|---|---|---|
-| 1 | 0.965 | **0.535** | **1.290** | 0.978 |
-| 2 | 1.012 | 0.336 | 0.732 | 0.859 |
-| 10 | 0.926 | 0.876 | 0.737 | 0.989 |
-| 20 | 0.819 | **1.011** | 0.830 | 1.010 |
+| K | NIFTY 50 | Q1 | Q2 | Q3 | Q5 |
+|---|---|---|---|---|---|
+| 1 | 0.965 | 0.167 | 0.656 | 1.202 | 0.916 |
+| 20 | **0.999** | *3.396* | **1.785** | **1.288** | 0.814 |
+| bars at K=20 | 4,018 | **47** | 12,550 | 43,991 | 42,903 |
+| 95% CI at K=20 | — | **[1.44, 25.69]** | [1.35, 3.38] | [1.10, 1.84] | [0.62, 1.31] |
 
-**The thinnest regime behaves exactly as finite-sampling theory predicts.** Q1's daily deficit of
-0.535 resolves *completely* by K=20 (1.011), climbing monotonically from K=2. Give the estimator
-twenty sessions of price path and the deficit disappears. This is the mechanism confirmed at the
-horizon where it should vanish — and it is the strongest evidence in the paper for the
-finite-sampling account.
+**NIFTY is stable and near one throughout** (0.965 → 0.999), which validates the construction.
 
-**The daily excess above one is a single-session effect.** Q2–Q4 sit at 1.09–1.29 at K=1 and
-collapse to ~0.70 at K=2. Whatever produces it does not survive pairing two sessions.
+**The thinnest bucket cannot be measured at long horizons at all**, and the reason is substantive
+rather than technical:
 
-**What is not established:** Q2–Q4 then settle at 0.67–0.83 and do not converge to one. That is
-unexplained and is the live question. NIFTY is uninterpretable at long horizons — its K=20
-estimate rests on 201 bars against 1,500+ per NEPSE bucket, so the 0.82–1.15 wobble is sampling
-noise.
+| Bucket | Median observations | **Median longest unbroken run** |
+|---|---|---|
+| **Q1** | 38 | **4 sessions** |
+| Q3 | 568 | 451 |
+| Q5 | 569 | 569 |
 
-> **The statement that survives.** At the daily horizon the RS-to-terminal-variance ratio departs
-> from one **in both directions** across liquidity regimes, and only the thinnest regime's
-> departure behaves as finite-sampling theory predicts. A correction built exclusively for that
-> mechanism cannot be applied on a trade-count diagnosis alone.
+> A Q1 security's median longest run of consecutive sessions is **four**. Any multi-day OHLC
+> construction is unavailable for exactly the securities this paper is about. The horizon
+> diagnostic — and by extension any aggregation-based remedy, including simply measuring
+> volatility over longer bars — **cannot be run where it would matter most.** That is a sharper
+> statement about ultra-thin markets than a convergence result would have been.
 
+**In the estimable buckets the departures do not resolve with horizon.** Q2 and Q3 sit materially
+*above* one at K=20 (1.79, 1.29) with intervals excluding one; Q4 and Q5 straddle it. Whatever
+produces the daily-horizon departures is not a purely short-horizon phenomenon.
+
+> **Correction to an earlier draft.** A previous version reported that Q1's daily deficit resolved
+> to 1.011 by K=20 and read this as confirming the finite-sampling mechanism. That result was an
+> artifact: liquidity buckets had been assigned per stock-day rather than per security, so 78% of
+> securities changed bucket over time and "consecutive" rows within a bucket were frequently
+> non-adjacent sessions — only 67.5% were genuinely adjacent, with a mean gap of 3.6 sessions.
+> With adjacency enforced the claim does not survive. Two further caveats apply even to the
+> corrected figure: moving from K=1 to K=2 both increases the number of observed price movements
+> *and* embeds an intersession opening move, so convergence could not separately identify
+> finite sampling in any case; and published applications of this framework report trajectories
+> from roughly 0.57 to 1.28 at K=20 across markets, so settling away from one is not by itself
+> anomalous.
 
 ### An institutional experiment, and what it does and does not show
 
@@ -569,9 +583,10 @@ Stated plainly.
   this gap; ABC's procedure is empirical and its exact form remains paywalled. The paper no longer
   claims existing corrections "cease to apply" — it reports that AddRS repairs the failure it
   targets and is defeated by a different one.
-- **Why NEPSE Q2–Q4 settle at RS/Var(x) ≈ 0.67–0.83 at long horizons, rather than converging to
-  one, is unexplained.** The daily excess is accounted for as a single-session effect; the
-  long-horizon deficit is not. This is the live question.
+- **Why NEPSE Q2 and Q3 sit above one at long horizons (1.79, 1.29) is unexplained.** This is the
+  live question, and it replaces an earlier one that rested on an invalid computation.
+- **The horizon diagnostic is unavailable for the thinnest bucket**, whose securities have a
+  median longest unbroken run of four sessions.
 - **The AddRS overshoot is not monotone in trading intensity** (1.16 → 1.30 → 1.20); unexplained.
 - **The A–B–A treatment is not clean**: changing the close also changes `x = ln(C/O)`, perturbing
   both the trigger and the magnitude of the correction term.
