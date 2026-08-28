@@ -302,8 +302,15 @@ sessions, block-bootstrap intervals over dates.
 
 **NIFTY is stable and near one throughout** (0.965 → 0.999), which validates the construction.
 
-**The thinnest bucket cannot be measured at long horizons at all**, and the reason is substantive
-rather than technical:
+**The thinnest bucket cannot be measured at long horizons**, and its curve is confounded by
+survivorship in any case: at K=20 only **7%** of Q1 securities can produce a bar, those survivors
+have nearly triple the bucket's participation rate, and their K=1 ratio is **0.234** against
+**0.912** for Q1 as a whole. The curve traces composition, not horizon. Q3, by contrast, retains
+89% with participation unchanged and a K=1 ratio of 1.208 on the survivor cohort against 1.201 for
+the full bucket — so **Q3's rise to 1.288 is a genuine horizon movement**, and it is the one
+horizon result that survives.
+
+The reason Q1 cannot be measured is substantive rather than technical:
 
 | Bucket | Median observations | **Median longest unbroken run** |
 |---|---|---|
@@ -313,8 +320,10 @@ rather than technical:
 
 > A Q1 security's median longest run of consecutive sessions is **four**. Any multi-day OHLC
 > construction is unavailable for exactly the securities this paper is about. The horizon
-> diagnostic — and by extension any aggregation-based remedy, including simply measuring
-> volatility over longer bars — **cannot be run where it would matter most.** That is a sharper
+> diagnostic **cannot be run where it would matter most.** The *published* multi-day construction
+> requires consecutive OHLC observations; one could instead carry prices forward across
+> non-trading sessions, or aggregate the next K occasions on which the security trades, but both
+> change the estimand and neither delivers the intended diagnostic. That is a sharper
 > statement about ultra-thin markets than a convergence result would have been.
 
 **In the estimable buckets the departures do not resolve with horizon.** Q2 and Q3 sit materially
