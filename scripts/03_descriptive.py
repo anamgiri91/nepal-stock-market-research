@@ -13,6 +13,8 @@ bootstrap()
 import numpy as np, pandas as pd
 import matplotlib.pyplot as plt
 from nepsevol.utils import plotstyle as ps
+from nepsevol.universe import classify_panel
+from nepsevol.clean.limits import flag_infeasible_range
 from nepsevol.estimators import range_ as R
 
 ps.apply()
@@ -37,8 +39,28 @@ p["var_gk"] = 0.5*p["hl"]**2 - (2*LN2 - 1)*p["c"]**2
 p["var_rs"] = p["u"]*(p["u"]-p["c"]) + p["d"]*(p["d"]-p["c"])
 p = p[p["cc"].abs() < 0.5]                      # drop implausible returns (splits/errors)
 
-print(f"analysis sample: {len(p):,} stock-days, {p['symbol'].nunique()} symbols, "
+# ---------------------------------------------------------------- RANGE screen
+# The return filter above cannot protect a range estimator: a corrupted high or low leaves the
+# close untouched and passes it. A legal session satisfies log(H/L) <= log((1+L)/(1-L)) given the
+# prevailing daily price limit. See DD-018.
+_bad = flag_infeasible_range(p)
+if _bad.any():
+    print(f"\ninfeasible range (exceeds the price limit's ceiling): dropping {int(_bad.sum())} row(s)")
+    print(p.loc[_bad, ["symbol","date","open","high","low","close","n_trades"]].to_string(index=False))
+p = p[~_bad]
+
+# ---------------------------------------------------------------- instrument type
+# NEPSE publishes no instrument-type field. Type is recovered from the ticker convention and
+# confirmed against par value. The two thinnest liquidity quintiles of the FULL universe hold
+# four ordinary equities between them out of 209 securities, so a liquidity contrast drawn across
+# the full universe is largely an asset-class contrast. See DD-018 and D-0012.
+p = classify_panel(p)
+
+print(f"\nfull universe:  {len(p):,} stock-days, {p['symbol'].nunique()} symbols, "
       f"{p['date'].nunique()} sessions ({p['date'].min().date()} -> {p['date'].max().date()})")
+print("  composition:", p.groupby("sec_type").symbol.nunique().to_dict())
+_eq = p[p.sec_type == "equity"]
+print(f"ordinary equity: {len(_eq):,} stock-days, {_eq['symbol'].nunique()} symbols")
 
 # ---------------------------------------------------------------- TABLE 1: descriptives
 q = [.01,.05,.10,.25,.50,.75,.90,.99]
@@ -160,4 +182,9 @@ g.to_csv(TAB / "table3_pathologies_by_decile.csv", index=False)
 print("\n=== Pathology rates by liquidity decile ===")
 print(g.rename(columns={"n_med":"median trades","pk_zero":"PK=0 %","gk_neg":"GK<0 %","cc_zero":"zero ret %"})
       .to_string(index=False, float_format=lambda x: f"{x:,.1f}"))
-p.to_parquet(ROOT / "data/processed/analysis_sample.parquet", index=False)
+# Two samples are written. Downstream scripts must choose explicitly rather than inherit a
+# default, because the choice determines whether a "liquidity" contrast is a liquidity contrast.
+p.to_parquet(ROOT / "data/processed/analysis_sample.parquet", index=False)          # full universe
+_eq.to_parquet(ROOT / "data/processed/equity_sample.parquet", index=False)          # ordinary equity
+print(f"\nwrote analysis_sample.parquet ({len(p):,} rows, all instrument types)")
+print(f"wrote equity_sample.parquet   ({len(_eq):,} rows, ordinary equity only)")
