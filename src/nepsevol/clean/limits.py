@@ -25,7 +25,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-__all__ = ["REGIMES", "regime_for", "flag_limits", "censoring_summary"]
+__all__ = ["REGIMES", "regime_for", "flag_limits", "censoring_summary",
+           "range_ceiling", "flag_infeasible_range"]
 
 # (effective_from, pre_open_band, daily_price_limit) — fractions of the previous close.
 # The 2026-04 revision changed BOTH simultaneously, alongside a new intraday circuit breaker and
@@ -100,3 +101,31 @@ def censoring_summary(df: pd.DataFrame, by: str | None = None) -> pd.DataFrame:
     g = df.groupby(by)[cols].mean().mul(100)
     g["n"] = df.groupby(by).size()
     return g
+
+
+def range_ceiling(dates) -> np.ndarray:
+    """Maximum log(H/L) a legal session can produce under the prevailing daily price limit.
+
+    The high may exceed the previous close by at most +L and the low may fall below it by at
+    most -L, so log(H/L) <= log((1+L)/(1-L)):
+
+        +/-10% regime  ->  0.2007
+        +/-15% regime  ->  0.3023
+
+    A rules-derived bound, not a percentile. It screens the RANGE, which the close-to-close
+    filter cannot: a corrupted high or low leaves the close untouched, passes every
+    return-based screen, and contaminates exactly the inputs a range estimator consumes.
+    """
+    limit = regime_for(dates)["limit"].values
+    return np.log((1 + limit) / (1 - limit))
+
+
+def flag_infeasible_range(df: pd.DataFrame, tol: float = 1e-4) -> np.ndarray:
+    """Boolean mask: sessions whose observed range exceeds what the price limit permits.
+
+    On the NEPSE sample this flags 3 rows in 184,394 (0.0016%), all of them non-equity. One --
+    SJLICP on 2024-05-12, a low of 100 (par) against an open of 383 on three trades -- by itself
+    supplied 82% of the summed Rogers-Satchell variance of the thinnest liquidity quintile.
+    """
+    lr = np.log(df["high"].values / df["low"].values)
+    return lr > range_ceiling(df["date"]) * (1 + tol)

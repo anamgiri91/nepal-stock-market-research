@@ -120,3 +120,37 @@ def test_addrs_non_negative_on_valid_bars():
 def test_addrs_recovers_true_sigma_when_densely_observed(dense):
     sigma_hat = np.sqrt(np.nanmean(R.add_rs(dense)))
     assert abs(sigma_hat - TRUE_SIGMA) / TRUE_SIGMA < 0.05
+
+
+# ---------------------------------------------------------------- security-type classification
+def test_classify_recovers_instrument_type_from_ticker_and_par():
+    from nepsevol.universe import classify
+    assert classify("SBLD2091", 1080.0) == "debenture"     # bank debenture, par 1000
+    assert classify("NICAD85/86", 1095.0) == "debenture"   # slash-format BS year
+    assert classify("ADBLB86", 1010.0) == "debenture"      # 'B' bond form
+    assert classify("SCBD", 1115.0) == "debenture"         # no year in ticker
+    assert classify("NABIL", 625.0) == "equity"
+    assert classify("UNL", 46888.0) == "equity"            # price alone must not imply debenture
+    assert classify("NABILP", 302.0) == "promoter"
+    assert classify("HBLPO", 400.0) == "promoter"
+    assert classify("NMB50", 10.4) == "fund"               # par 10 beats the trailing digits
+    assert classify("CMF1", 10.36) == "fund"
+
+
+def test_fund_band_is_separated_by_an_empty_interval():
+    """Funds are identified by price alone because nothing trades between 10.78 and 100."""
+    from nepsevol.universe import FUND_MAX_CLOSE
+    assert 10.78 < FUND_MAX_CLOSE < 100.0
+
+
+def test_range_ceiling_matches_the_price_limit():
+    import numpy as np, pandas as pd
+    from nepsevol.clean.limits import range_ceiling, flag_infeasible_range
+    d = pd.Series(pd.to_datetime(["2025-01-01", "2026-06-01"]))
+    got = range_ceiling(d)
+    np.testing.assert_allclose(got, [np.log(1.10 / 0.90), np.log(1.15 / 0.85)], rtol=1e-12)
+
+    # a legal limit-to-limit session passes; the SJLICP record does not
+    df = pd.DataFrame({"date": pd.to_datetime(["2025-01-01", "2024-05-12"]),
+                       "high": [110.0, 480.0], "low": [90.0, 100.0]})
+    assert list(flag_infeasible_range(df)) == [False, True]
