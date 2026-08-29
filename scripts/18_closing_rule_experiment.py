@@ -63,8 +63,8 @@ print(f"    C=L   {a1['C=L %']:.1f}%  →  {b['C=L %']:.1f}%  →  {a2['C=L %']:
 print(f"  OPEN-side indicators (placebo — should not move):")
 print(f"    H=O   {a1['H=O %']:.1f}%  →  {b['H=O %']:.1f}%  →  {a2['H=O %']:.1f}%")
 print(f"    L=O   {a1['L=O %']:.1f}%  →  {b['L=O %']:.1f}%  →  {a2['L=O %']:.1f}%")
-print(f"\n  AddRS/OC   {a1['AddRS/OC']:.3f}  →  {b['AddRS/OC']:.3f}  →  {a2['AddRS/OC']:.3f}")
-print(f"  RS/OC      {a1['RS/OC']:.3f}  →  {b['RS/OC']:.3f}  →  {a2['RS/OC']:.3f}")
+print(f"\n  AddRS/OC (SD scale)   {a1['AddRS/OC_sd_ratio']:.3f}  →  {b['AddRS/OC_sd_ratio']:.3f}  →  {a2['AddRS/OC_sd_ratio']:.3f}")
+print(f"  RS/OC    (SD scale)   {a1['RS/OC_sd_ratio']:.3f}  →  {b['RS/OC_sd_ratio']:.3f}  →  {a2['RS/OC_sd_ratio']:.3f}")
 
 # x^2-weighted decomposition by boundary type
 print("\n\nWhich boundary drives the correction? (x²-weighted, not mere frequency)")

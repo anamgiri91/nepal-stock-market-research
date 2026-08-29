@@ -115,13 +115,13 @@ fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.0))
 ax = axes[0]
 sub = fp[fp.trades.notna()].sort_values("trades")
 ax.axhline(1.0, color=ps.INK_MUTED, lw=1.0)
-for e in ["Parkinson","Garman-Klass","Rogers-Satchell"]:
+for e in ["Parkinson","Garman-Klass","Rogers-Satchell"]:   # style keys are plain names
     c, ls, mk = ps.STYLE[e]
-    ax.plot(sub.trades, sub[e], color=c, ls=ls, marker=mk, ms=6,
+    ax.plot(sub.trades, sub[f"{e}_sd_ratio"], color=c, ls=ls, marker=mk, ms=6,
             markeredgecolor=ps.SURFACE, markeredgewidth=1.0, label=f"{e} (NEPSE stocks)")
 for lbl, colr, mark in [("NIFTY 50 (dense, liquid)", ps.SERIES["green"], "*"),
                         ("NEPSE index (aggregate)",  ps.SERIES["violet"], "P")]:
-    v = fp.loc[fp.regime == lbl, "Parkinson"].iloc[0]
+    v = fp.loc[fp.regime == lbl, "Parkinson_sd_ratio"].iloc[0]
     ax.axhline(v, color=colr, ls=":", lw=1.4)
     ax.annotate(f"{lbl.split(' (')[0]}: {v:.3f}", (sub.trades.max(), v),
                 textcoords="offset points", xytext=(-4, 5), ha="right",
