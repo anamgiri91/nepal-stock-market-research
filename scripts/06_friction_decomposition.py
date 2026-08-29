@@ -13,6 +13,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from _env import bootstrap
 bootstrap()
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 from nepsevol.utils import plotstyle as ps
 from nepsevol.estimators import range_ as R
 from nepsevol.estimators.simulate import simulate_observed_ohlc
@@ -38,7 +40,7 @@ base = s[s.case=="D1+D2 only (no noise)"].sort_values("n")
 fig, ax = plt.subplots(figsize=(6.8,4.2))
 ax.axhline(1.0, color=ps.INK_MUTED, lw=0.8)
 
-p = pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet")
+p = load_sample(ROOT, "equity")
 ax.axvspan(p["n_trades"].quantile(.10), p["n_trades"].quantile(.90),
            color=ps.SERIES["blue"], alpha=0.07, zorder=0)
 

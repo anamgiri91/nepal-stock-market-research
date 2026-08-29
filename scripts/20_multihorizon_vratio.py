@@ -29,6 +29,8 @@ warnings.filterwarnings("ignore")
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts")); from _env import bootstrap; bootstrap()
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 from nepsevol.utils import plotstyle as ps
 ps.apply(); FIG=ROOT/"output"/"figures"; TAB=ROOT/"output"/"tables"
 EXT=ROOT.parent/"private"/"data-vault"/"raw"/"external"
@@ -82,7 +84,7 @@ def pooled(panel,K,overlap=True,date_subset=None):
 
 
 # ── data, with SECURITY-level liquidity assignment ──
-p=pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet")
+p=load_sample(ROOT, "equity")
 sess={d:i for i,d in enumerate(sorted(p.date.unique()))}
 p["sr"]=p.date.map(sess)
 sec_liq=p.groupby("symbol").n_trades.median()

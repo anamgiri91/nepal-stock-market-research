@@ -1,3 +1,14 @@
+"""SUPERSEDED 2026-08-27 by DD-018 -- DO NOT USE.
+
+This script produced the two-margin result whose conclusion was withdrawn: in the full
+universe it measured asset-class mixing, and within equity it rested on three securities
+(dropping NLO, BNL and UNL takes the participation R-squared from 0.851 to 0.040).
+
+Retained only so the retracted analysis stays reproducible. It reads the mixed universe
+deliberately. Excluded from the active pipeline.
+"""
+import sys; sys.exit("21_two_margin_liquidity.py is SUPERSEDED (DD-018); refusing to run.")
+
 """Liquidity has two margins, and the paper had been measuring only one.
 
 Every liquidity statistic in this project came from median trade count on days a security APPEARS

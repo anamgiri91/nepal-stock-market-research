@@ -19,6 +19,8 @@ from _env import bootstrap
 bootstrap()
 
 import numpy as np, pandas as pd
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 import matplotlib.pyplot as plt
 from nepsevol.utils import plotstyle as ps
 from nepsevol.estimators import range_ as R
@@ -27,7 +29,7 @@ from nepsevol.estimators.simulate import simulate_observed_ohlc
 ps.apply()
 FIG = ROOT / "output" / "figures"; TAB = ROOT / "output" / "tables"
 
-p = pd.read_parquet(ROOT / "data/processed/analysis_sample.parquet")
+p = load_sample(ROOT, "equity")
 p["var_oc"] = p["c"] ** 2                      # matched unbiased benchmark (open-to-close)
 p = p[p["c"].abs() < 0.5]
 

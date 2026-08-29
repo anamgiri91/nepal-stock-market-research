@@ -20,6 +20,8 @@ warnings.filterwarnings("ignore")
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts")); from _env import bootstrap; bootstrap()
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 from nepsevol.utils import plotstyle as ps
 from nepsevol.estimators import range_ as R
 ps.apply(); FIG=ROOT/"output"/"figures"; TAB=ROOT/"output"/"tables"
@@ -37,7 +39,7 @@ def block(df, label, trades=np.nan):
     return out
 
 nifty=pd.read_csv(EXT/"nifty50.csv",parse_dates=["Date"]); nifty.columns=[c.lower() for c in nifty.columns]
-panel=pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet")
+panel=load_sample(ROOT, "equity")
 panel["q"]=pd.qcut(panel.n_trades,5,labels=False,duplicates="drop")
 
 rows=[block(nifty,"NIFTY 50 index")]

@@ -16,6 +16,8 @@ from _env import bootstrap
 bootstrap(["statsmodels", "arch"])
 
 import numpy as np, pandas as pd
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import acf
 from statsmodels.stats.diagnostic import acorr_ljungbox
@@ -25,7 +27,7 @@ from nepsevol.utils import plotstyle as ps
 
 ps.apply()
 FIG = ROOT/"output"/"figures"; TAB = ROOT/"output"/"tables"
-p = pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet").sort_values(["symbol","date"])
+p = load_sample(ROOT, "equity").sort_values(["symbol","date"])
 
 # stratify securities into three liquidity groups by median trade count
 med = p.groupby("symbol")["n_trades"].median()

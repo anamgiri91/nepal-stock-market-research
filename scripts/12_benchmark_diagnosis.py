@@ -19,6 +19,8 @@ sys.path.insert(0, str(ROOT/"scripts"))
 from _env import bootstrap
 bootstrap()
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 from nepsevol.utils import plotstyle as ps
 ps.apply()
 EXT=ROOT.parent/"private"/"data-vault"/"raw"/"external"
@@ -45,12 +47,19 @@ def decompose(df, label, panel=False):
         r_cc=c.diff(); r_on=(o-c.shift(1))
     r_oc=(c-o)
     r_co = r_on
+    # A-005 FIX. Var(cc) = Var(co) + Var(oc) + 2Cov(co,oc) holds only if all four moments
+    # are computed on THE SAME rows. r_cc and r_on are restricted to consecutive sessions
+    # via .where(gap==1); r_oc previously was not, so v_oc used a larger sample than the
+    # rest and the identity failed to close by up to 11% on the panel rows (it closed on
+    # the index rows only because they take the non-panel path). Restrict all four here.
+    ok_all = r_cc.notna() & r_on.notna() & r_oc.notna()
+    r_cc, r_on, r_oc = r_cc[ok_all], r_on[ok_all], r_oc[ok_all]
+    r_co = r_on
     v_cc,v_oc,v_on=r_cc.var(),r_oc.var(),r_on.var()
     # Var(cc) = Var(co) + Var(oc) + 2 Cov(co, oc). The covariance term is NOT optional: without
     # it, Var(oc)/Var(cc) is not a variance "share" and can exceed 1, as it does for dense
     # securities here. Report all three components.
-    ok = r_co.notna() & r_oc.notna()
-    cov = float(r_co[ok].cov(r_oc[ok]))
+    cov = float(r_co.cov(r_oc))
     return {"market":label,"n":len(d),
             "RS/close-to-close":rs/v_cc,"RS/open-to-close":rs/v_oc,
             "OC/CC ratio":v_oc/v_cc,
@@ -63,7 +72,7 @@ def decompose(df, label, panel=False):
 nifty=pd.read_csv(EXT/"nifty50.csv",parse_dates=["Date"]); nifty.columns=[x.lower() for x in nifty.columns]
 idx=pd.read_csv(VAULT/"nepse_index_history.csv",parse_dates=["Date"]); idx.columns=[x.lower() for x in idx.columns]
 nep=idx[idx.date>=pd.Timestamp("2016-06-06")]
-panel=pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet")
+panel=load_sample(ROOT, "equity")
 thin=panel[panel.n_trades<=panel.n_trades.quantile(0.167)]
 dense=panel[panel.n_trades>=panel.n_trades.quantile(0.833)]
 

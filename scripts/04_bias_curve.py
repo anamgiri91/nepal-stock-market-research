@@ -16,6 +16,8 @@ from _env import bootstrap
 bootstrap()
 
 import numpy as np, pandas as pd
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 import matplotlib.pyplot as plt
 from nepsevol.utils import plotstyle as ps
 from nepsevol.estimators import range_ as R
@@ -73,7 +75,7 @@ for e, n in cross.items():
     print(f"  {e:18} N* = {n if n else '(never)'}")
 
 # ---------------------------------------------------------------- FIGURE 2: bias curve
-p = pd.read_parquet(ROOT / "data/processed/analysis_sample.parquet")
+p = load_sample(ROOT, "equity")
 nepse_p10, nepse_med, nepse_p90 = (p["n_trades"].quantile(q) for q in (.10, .50, .90))
 
 fig, ax = plt.subplots(figsize=(6.6, 4.0))

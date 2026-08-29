@@ -16,6 +16,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts")); from _env import bootstrap; bootstrap()
 
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 from matplotlib.patches import Patch
 from nepsevol.utils import plotstyle as ps
 
@@ -54,7 +56,7 @@ def profile(df, sessions):
     return pd.DataFrame(out)
 
 
-full = pd.read_parquet(ROOT / "data/processed/analysis_sample.parquet")
+full = load_sample(ROOT, "full")
 eq   = pd.read_parquet(ROOT / "data/processed/equity_sample.parquet")
 sessions = pd.Series(sorted(full.date.unique()))
 

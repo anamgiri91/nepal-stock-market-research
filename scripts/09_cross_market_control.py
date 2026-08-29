@@ -28,6 +28,9 @@ from _env import bootstrap
 bootstrap(["statsmodels"])
 
 import numpy as np, pandas as pd
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
+from nepsevol.estimators.ratios import sd_ratio
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from nepsevol.utils import plotstyle as ps
@@ -57,7 +60,8 @@ def fingerprint(df):
     m = var_oc.mean()
     out = {}
     for name, v in [("Parkinson",var_pk),("Garman-Klass",var_gk),("Rogers-Satchell",var_rs)]:
-        out[name] = np.sqrt(v.mean()/m) if v.mean() > 0 and m > 0 else np.nan
+        # SD-scale ratio, labelled at source (A-038). Column names carry the scale.
+        out[f"{name}_sd_ratio"], _ = sd_ratio(v, m)
     out["n_days"] = len(d)
     out["zero_range_pct"] = 100*(d.high == d.low).mean()
     return out
@@ -71,7 +75,7 @@ idx = pd.read_csv(VAULT/"nepse_index_history.csv", parse_dates=["Date"])
 idx.columns = [x.lower() for x in idx.columns]
 nepse_idx = idx[idx.date >= pd.Timestamp("2016-06-06")].sort_values("date")
 
-panel = pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet")
+panel = load_sample(ROOT, "equity")
 
 rows = [{"regime":"NIFTY 50 (dense, liquid)", "trades":np.nan, **fingerprint(nifty)},
         {"regime":"NEPSE index (aggregate)",  "trades":np.nan, **fingerprint(nepse_idx)}]

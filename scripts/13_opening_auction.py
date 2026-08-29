@@ -21,10 +21,12 @@ warnings.filterwarnings("ignore")
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts")); from _env import bootstrap; bootstrap()
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 from nepsevol.utils import plotstyle as ps
 ps.apply(); FIG=ROOT/"output"/"figures"; TAB=ROOT/"output"/"tables"
 
-p=pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet").sort_values(["symbol","date"])
+p=load_sample(ROOT, "equity").sort_values(["symbol","date"])
 sess={d:i for i,d in enumerate(sorted(p.date.unique()))}
 p["sr"]=p.date.map(sess); p["gap"]=p.groupby("symbol").sr.diff()
 p["prev_c"]=p.groupby("symbol").close.shift(1)

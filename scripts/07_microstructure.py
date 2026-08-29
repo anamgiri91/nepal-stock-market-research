@@ -16,6 +16,8 @@ from _env import bootstrap
 bootstrap(["statsmodels"])
 
 import numpy as np, pandas as pd
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from nepsevol.utils import plotstyle as ps
@@ -25,7 +27,7 @@ from nepsevol.evaluation import microstructure as ms
 
 ps.apply()
 FIG = ROOT/"output"/"figures"; TAB = ROOT/"output"/"tables"
-p = pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet").sort_values(["symbol","date"])
+p = load_sample(ROOT, "equity").sort_values(["symbol","date"])
 p["var_oc"] = p["c"] ** 2          # open-to-close benchmark, matched to Parkinson's scope
 
 # ---------------------------------------------------------------- per-stock diagnostics

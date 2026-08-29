@@ -15,6 +15,8 @@ warnings.filterwarnings("ignore")
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/"scripts")); from _env import bootstrap; bootstrap()
 import numpy as np, pandas as pd
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.sample import load_sample
 from nepsevol.estimators import range_ as R
 from nepsevol.clean.limits import flag_limits
 TAB=ROOT/"output"/"tables"; EXT=ROOT.parent/"private"/"data-vault"/"raw"/"external"
@@ -25,7 +27,7 @@ def ratios(g):
     rs=np.nanmean(R.rogers_satchell(g)); ad=np.nanmean(R.add_rs(g))
     return np.sqrt(rs/oc), np.sqrt(ad/oc), rs/oc, (ad-rs)/oc
 
-p=pd.read_parquet(ROOT/"data/processed/analysis_sample.parquet").sort_values(["symbol","date"])
+p=load_sample(ROOT, "equity").sort_values(["symbol","date"])
 p=flag_limits(p); p["q"]=pd.qcut(p.n_trades,5,labels=False,duplicates="drop")
 
 # 1. the premise
