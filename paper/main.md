@@ -40,9 +40,11 @@ in the thinnest quintile but supply only a small absolute correction each, while
 active quintile fires on 37.4% of days and supplies 4.5 times more per firing — so frequency of
 correction, absolute correction mass, and correction relative to the estimator are three
 different things and point in different directions. Third, NEPSE's pre-open call auction bands
-the opening return at ±2% of the previous close, and a censored-normal model estimates that the
-band conceals a materially larger latent opening dispersion, roughly flat across liquidity.
-That last result is model-based and exploratory.
+the opening return at ±2% of the previous close, and a censored-normal model puts observed
+opening dispersion about 30% below its fitted latent counterpart, roughly flat across liquidity.
+We then test that model's maintained assumption against the April 2026 widening of the band to
+±5% and it fails: the wider window does not reveal the distribution the narrower one implies.
+We therefore report this as a within-regime description, not as recovery of a latent quantity.
 
 The contribution is methodological. A frontier-market study that pools whatever an exchange
 publishes will find an illiquidity result that is really a composition result, and the two are
@@ -458,7 +460,46 @@ bars, so the correction is not an artifact of mechanically constrained sessions.
 numerically fragile: exact price equality and a 1e-12 relative tolerance give identical results,
 and widening to a full tick moves the headline by 0.63%.
 
-### 8.4 Four distinct failures
+### 8.4 An institutional experiment on the boundary conditions
+
+Two of AddRS's four boundary conditions involve the close and two the open, which gives a
+built-in placebo when the exchange changes how the close is constructed. NEPSE did so twice
+inside the panel: last traded price through 2025-03-19, a volume-weighted average of the final
+15 minutes to 2025-09-22, then last traded price again.
+
+If the close-side conditions fire because the close is a discrete terminal transaction, a VWAP
+close should suppress them, and should leave the open-side conditions alone.
+
+| | A1 last-trade | **B VWAP** | A2 last-trade | B vs flanks |
+|---|---|---|---|---|
+| `C = H` *(treated)* | 6.15% | **1.40%** | 9.01% | **−81.6%** |
+| `C = L` *(treated)* | 6.66% | **1.19%** | 6.07% | **−81.4%** |
+| `H = O` *(placebo)* | 18.96% | 19.46% | 21.91% | −4.7% |
+| `L = O` *(placebo)* | 16.28% | 19.67% | 22.03% | +2.7% |
+| RS ÷ OC *(SD-scale)* | 1.062 | 1.077 | 0.982 | — |
+| AddRS ÷ OC *(SD-scale)* | 1.236 | 1.231 | 1.208 | — |
+
+**The treated indicators fall by about 81% and the placebo indicators do not move materially.**
+
+To ask whether a window of that length placed anywhere would produce a comparable contrast, we
+slide the same 186-day window across every start date in the sample that does not overlap the
+real intervention, giving **193 placebo windows**. Their treated-indicator effects range from
+**−31.8% to +29.8%**, with a median absolute effect of 13.0%. **None reaches the real effect's
+magnitude** (placebo *p* = 0.0052).
+
+**AddRS does not respond**: 1.236 → 1.231 → 1.208, a drift smaller than the placebo spread, even
+though Rogers–Satchell itself moves. The correction's inputs change sharply and its output does
+not, which is what §8.2 predicts when the correction is dominated by the term the rule change
+does not touch.
+
+**What this does not establish.** The two flanking periods do not agree with each other: `C = H`
+runs 6.15% before and 9.01% after, a 46% difference, so this is not a clean return to baseline
+and some of the contrast reflects drift across the panel rather than the rule. The effect is
+sharp, specific to the treated indicators, and far outside anything the placebo windows produce;
+that is strong associational evidence and short of clean identification. We describe it that way
+and draw no causal conclusion about the exchange's decision.
+
+### 8.5 Four distinct failures
 
 | | failure | addressed by |
 |---|---|---|
@@ -528,7 +569,41 @@ zero and mass at the band, and a single normal cannot represent that. They are e
 counted. Excluding them biases the reported median upward, and we note that the median over all
 securities including them would be lower.
 
-### 9.4 A rule change we do not exploit
+### 9.4 The censoring assumption does not extrapolate across the band change
+
+The maintained assumption is testable in one place. In April 2026 the band widened from ±2% to
+±5%. If the band were pure censoring — a latent opening return observed through a window — the
+same latent distribution should govern both regimes, and the wider window should simply reveal
+more of it. We fit the censored normal on the ±2% regime (118,376 equity opens) and ask what it
+predicts for the ±5% regime (24,482 opens).
+
+| quantity | predicted from ±2% fit | observed under ±5% |
+|---|---|---|
+| share beyond ±5% | **0.14%** | **6.93%** |
+| \|r_co\| 90th percentile | 0.0259 | **0.0476** |
+| \|r_co\| 95th percentile | 0.0307 | 0.0493 |
+| SD of interior (\|r\| < 2%) opens | 0.0153 | **0.0095** |
+| share in the newly opened 2–5% corridor | 19.4% | 23.4% |
+
+**The extrapolation fails, and it fails in a diagnostic direction.** Under the wider band the
+interior of the distribution became *tighter* (SD 0.0095 against a predicted 0.0153) while far
+more mass sits at or beyond the new boundary than censoring predicts — 6.93% against 0.14%, a
+factor of roughly fifty. The no-match rate also rose from 9.1% to 17.4%. Tighter centre, fatter
+extreme tail, more failures to clear: that is a change in behaviour, not a wider view of an
+unchanged latent variable.
+
+**What we can and cannot conclude.** We cannot attribute this to the band alone, because the
+April 2026 revision was a bundle — band ±2%→±5%, daily price limit 10%→15%, a new intraday
+circuit breaker, and round-the-clock order entry. Any of those could alter opening behaviour. But
+the test does not depend on isolating the cause: it shows that the pure-censoring model does not
+carry across the one regime change we can observe.
+
+**We therefore report §9.3 as a within-regime descriptive summary of how much dispersion the
+observed opening returns understate under a fixed band, and not as recovery of a structural
+latent quantity.** The number is a model-based description; treating it as identification of
+suppressed volatility would require the assumption this test declines to support.
+
+### 9.5 A rule change we do not exploit
 
 Monthly fingerprints locate a sharp regime change: through 2026-03 the 95th percentile of the
 opening return is pinned at 2.01% every month; from April 2026 it jumps to ~4.9% and the boundary
@@ -597,15 +672,16 @@ not as a confirmed hypothesis.
 
 ## 11. What is not established
 
-- **A causal reading of the closing-rule change.** NEPSE altered the official closing-price
-  construction twice inside the panel, giving an A–B–A design. On equity the treated close-side
-  indicators move as expected (`C = H`: 6.15% → 1.40% → 9.01%), **but the placebo open-side
-  indicator also moves** (`H = O`: 18.96% → 19.46% → 21.91%), and the two A periods do not
-  resemble each other. The design does not support causal language and we use none. Placebo
-  intervention dates have not been run.
-- **The Tobit result is model-based.** We have not verified that the pre-open band constitutes
-  censoring in the econometric sense rather than a structural bound, nor checked the
-  distributional and dependence assumptions against nonparametric alternatives.
+- **A causal reading of the closing-rule change.** The treated indicators fall ~81% while the
+  placebo indicators move under 5%, and none of 193 placebo windows reproduces the effect
+  (§8.4). But the two flanking periods differ from each other by 46% on the treated indicator,
+  so the design is not a clean return to baseline. We report it as strong associational evidence
+  and use no causal language.
+- **The pre-open band is not shown to be censoring.** Fitted on the ±2% regime, the censored
+  normal predicts 0.14% of opens beyond ±5%; 6.93% are observed, while the interior tightens
+  (§9.4). The assumption fails the one out-of-sample test available. The April 2026 change was a
+  bundle, so we cannot isolate the band as the cause — but the model does not extrapolate, and
+  §9.3 is reported as description rather than identification.
 - **Simulation evidence is illustrative, not independent validation.** We have not audited
   whether parameters were calibrated to reproduce the empirical feature the simulations are then
   used to illuminate.
