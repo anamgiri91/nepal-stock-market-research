@@ -11,6 +11,8 @@ from _env import bootstrap
 bootstrap()
 
 import numpy as np, pandas as pd
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.validate import validate_analysis_sample
 import matplotlib.pyplot as plt
 from nepsevol.utils import plotstyle as ps
 from nepsevol.universe import classify_panel
@@ -184,6 +186,11 @@ print(g.rename(columns={"n_med":"median trades","pk_zero":"PK=0 %","gk_neg":"GK<
       .to_string(index=False, float_format=lambda x: f"{x:,.1f}"))
 # Two samples are written. Downstream scripts must choose explicitly rather than inherit a
 # default, because the choice determines whether a "liquidity" contrast is a liquidity contrast.
+# Hard invariant gate: a failure raises and stops the build (audit policy SS8).
+validate_analysis_sample(_eq, universe="equity")
+validate_analysis_sample(p, universe="full", expect_sec_type=False)
+print("  invariant gate: PASSED for both samples")
+
 p.to_parquet(ROOT / "data/processed/analysis_sample.parquet", index=False)          # full universe
 _eq.to_parquet(ROOT / "data/processed/equity_sample.parquet", index=False)          # ordinary equity
 print(f"\nwrote analysis_sample.parquet ({len(p):,} rows, all instrument types)")

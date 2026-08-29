@@ -16,6 +16,11 @@ bootstrap()
 
 import numpy as np, pandas as pd
 
+sys.path.insert(0, str(ROOT / "src"))
+from nepsevol.clean.ohlc import (repair_ohlc, resolve_duplicate_keys, ohlc_violations,
+                                 repair_audit_table)
+from nepsevol.provenance import write_manifest
+
 RAW = ROOT.parent / "private" / "data-vault" / "raw"
 OUT = ROOT / "data" / "processed"; OUT.mkdir(parents=True, exist_ok=True)
 
@@ -38,6 +43,17 @@ def build_long() -> pd.DataFrame:
     for c in ["open", "high", "low", "close", "volume", "turnover"]:
         p[c] = pd.to_numeric(p[c], errors="coerce")
     p = p.dropna(subset=["date", "close"]).sort_values(["symbol", "date"]).reset_index(drop=True)
+
+    # PAP SS3.1 envelope repair and the security-day sample definition, applied once at the
+    # source so every downstream script inherits them. Both were pre-committed; neither was
+    # implemented until 2026-08-28. The primary panel carried 1,154 OHLC-inconsistent rows
+    # (2 of them with high < low) and 640 duplicated security-days.
+    print("\nPANEL A - pre-committed cleaning (PAP SS3.1)")
+    n_viol = int(ohlc_violations(p).sum())
+    p = resolve_duplicate_keys(p)
+    p = repair_ohlc(p)
+    print(f"  OHLC violations repaired     {int(p.ohlc_repaired.sum()):,} "
+          f"(detected before dedup: {n_viol:,}); originals retained as open_original..close_original")
 
     # Turnover is NOT populated in the source before 2011: every zero-turnover row there has
     # POSITIVE volume (99.9% of 3,702 such rows) and 56% show High != Low, so those securities
@@ -131,13 +147,31 @@ def clean_trades_panel(p: pd.DataFrame, stale_threshold: float = 0.90) -> pd.Dat
 if __name__ == "__main__":
     print("Building panels from", RAW)
     long_ = build_long();  diagnose(long_, "PANEL A - long history (no trade counts)")
-    trades = build_trades(); diagnose(trades, "PANEL B - with trade counts")
+
+    trades = build_trades()
+    # PAP SS3.1 binds on EVERY dataset, not only panel A.
+    print("\nPANEL B - pre-committed cleaning (PAP SS3.1)")
+    trades = resolve_duplicate_keys(trades)
+    trades = repair_ohlc(trades)
+    print(f"  OHLC violations repaired     {int(trades.ohlc_repaired.sum()):,}; "
+          f"originals retained as open_original..close_original")
+    diagnose(trades, "PANEL B - with trade counts")
 
     clean = clean_trades_panel(trades)
 
     long_.to_parquet(OUT / "panel_long.parquet", index=False)
     trades.to_parquet(OUT / "panel_trades.parquet", index=False)
     clean.to_parquet(OUT / "panel_trades_clean.parquet", index=False)
+
+    # Provenance: every repaired field, and a versioned manifest for the artefacts.
+    audit_dir = OUT / "audit"; audit_dir.mkdir(exist_ok=True)
+    for name, frame in (("panel_long", long_), ("panel_trades", trades)):
+        tbl = repair_audit_table(frame)
+        tbl.to_csv(audit_dir / f"{name}_repair_audit.csv", index=False)
+        print(f"  repair audit: {len(tbl):,} field-level changes -> "
+              f"{audit_dir.name}/{name}_repair_audit.csv")
+    write_manifest(ROOT, OUT, {"panel_long": long_, "panel_trades": trades,
+                               "panel_trades_clean": clean})
     print(f"\nwrote {OUT/'panel_long.parquet'}")
     print(f"wrote {OUT/'panel_trades.parquet'}")
     print(f"wrote {OUT/'panel_trades_clean.parquet'}")
