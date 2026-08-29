@@ -682,9 +682,20 @@ not as a confirmed hypothesis.
   (§9.4). The assumption fails the one out-of-sample test available. The April 2026 change was a
   bundle, so we cannot isolate the band as the cause — but the model does not extrapolate, and
   §9.3 is reported as description rather than identification.
-- **Simulation evidence is illustrative, not independent validation.** We have not audited
-  whether parameters were calibrated to reproduce the empirical feature the simulations are then
-  used to illuminate.
+- **Simulation evidence is illustrative, not independent validation.** We audited the
+  parameters for circularity and found none: the data-generating process is the textbook
+  discretely-observed geometric Brownian motion the estimators are derived under, the trade grid
+  spans rather than fits the empirical range, and the bias ratio is invariant to the choice of
+  true sigma (identical to nine decimals across a sixteen-fold range). Two limits should be
+  stated anyway. First, the latent path is itself discretised at 2,000 steps, so even dense
+  observation recovers only about 97% of true sigma; the simulation's own ceiling is 0.97, not
+  1.00, and the existing recovery test passes because its tolerance absorbs that. Second, and
+  more substantively, **the simulation does not reproduce what we observe.** At 37 trades per day
+  — the thinnest equity quintile's intensity — it predicts a Parkinson ratio of 0.857 and a zero
+  `P(H = L)` rate, whereas the equity data at that intensity show `P(H = L)` of 1.26% and a ratio
+  slightly above one. The denominators differ (true sigma in the simulation, a noisy open-to-close
+  proxy in the data), so this is not a clean contradiction, but the discretisation mechanism does
+  not by itself account for the equity pattern and we do not present it as if it did.
 - **No security-level cross-market comparison exists.** Every cross-market statement rests on
   index-versus-index or index-versus-stock contrasts. Constituent-level NIFTY data with trade
   counts would be required.

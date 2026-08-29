@@ -385,3 +385,31 @@ def test_pipeline_halts_on_each_injected_defect():
     for name, mutate in cases.items():
         with pytest.raises(SampleValidationError):
             validate_analysis_sample(mutate(good.copy()), universe="equity")
+
+
+# --- simulation: the DGP has its own ceiling, and it must be documented not absorbed ----
+
+def test_simulation_ceiling_is_explicit_not_hidden_in_a_tolerance():
+    """The latent path is itself discretised, so even dense observation cannot recover sigma.
+
+    With fine_steps = 2000, observing every step still gives Parkinson/true ~= 0.97, not 1.00,
+    because the 'true' range is the range of a 2000-step walk rather than of a continuous path.
+    The existing recovery test passes only because its tolerance is loose enough to absorb this.
+    Pinning the ceiling here means a future change to fine_steps shows up as a failure rather
+    than silently shifting every simulated bias curve.
+    """
+    from nepsevol.estimators.simulate import simulate_observed_ohlc
+    true_sigma = 0.02
+    df = simulate_observed_ohlc(1500, true_sigma, 4000, noise_sd=0.0, seed=11)
+    ratio = np.sqrt(R.parkinson(df).mean()) / true_sigma
+    assert 0.95 < ratio < 1.0, f"dense-observation ceiling moved: {ratio:.4f}"
+
+
+def test_simulated_bias_ratio_is_scale_free_in_sigma():
+    """If it were not, the arbitrary choice of TRUE_SIGMA = 0.02 would matter."""
+    from nepsevol.estimators.simulate import simulate_observed_ohlc
+    ratios = []
+    for s in (0.005, 0.02, 0.08):
+        df = simulate_observed_ohlc(1200, s, 10, noise_sd=0.0, seed=7)
+        ratios.append(np.sqrt(R.parkinson(df).mean()) / s)
+    assert max(ratios) - min(ratios) < 1e-9, ratios
