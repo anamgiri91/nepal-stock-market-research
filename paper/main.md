@@ -6,7 +6,7 @@
 > been evaluated on held-out data; its confirmatory provenance carries a stated qualification
 > (§10). Every ratio in this paper is labelled **variance-scale** or **SD-scale**, because the
 > two differ by a square root and an earlier draft mixed them across adjacent sections.
-> Section 11 states what is not established.
+> Section 12 states what is not established.
 
 ---
 
@@ -46,12 +46,14 @@ We then test that model's maintained assumption against the April 2026 widening 
 ±5% and it fails: the wider window does not reveal the distribution the narrower one implies.
 We therefore report this as a within-regime description, not as recovery of a latent quantity.
 
-The contribution is methodological. A frontier-market study that pools whatever an exchange
-publishes will find an illiquidity result that is really a composition result. Restricting to
-ordinary common shares is long-standing practice in the emerging-market liquidity literature, so
-the remedy is not new; what is new is the range-estimator form of the problem, the fact that the
-filter cannot be applied mechanically where the exchange publishes no instrument-type field, and
-a measurement of the artifact's size.
+The contribution is a case study, and we state its limits with it. Restricting samples to ordinary
+common shares is long-standing practice in the emerging-market liquidity literature; the zero-range
+case and its origin in sparse trading are documented in the bid–ask spread literature working on the
+same daily inputs. **We propose no new estimator and no zero-range correction.** What we document is
+the downstream consequence of omitting a familiar filter in a market where it cannot be applied
+mechanically, because the exchange publishes no instrument-type field: that literature applies the
+filter to protect a *liquidity measure*, and the same omission determines whether one concludes that
+range-based estimators are viable in the market at all.
 
 ---
 
@@ -133,7 +135,7 @@ orders may be placed only within **±2% of the previous close**. The engine clea
 volume-maximising price, and if no orders match, the opening price is set equal to the previous
 close. Section 9 shows both rules are visible in the data. The band was widened to ±5% in April
 2026 as part of a bundle of simultaneous changes, which is why we do not treat it as a natural
-experiment (§11).
+experiment (§12).
 
 ---
 
@@ -416,7 +418,7 @@ are dense. We report this rather than omitting it: an index is a diversified por
 range behaves differently from a single security's, so an index-versus-stock comparison is not
 like-for-like. **No security-level cross-market comparison exists in this paper.** Any claim that
 NEPSE equities and NIFTY constituents behave identically would require constituent-level NIFTY
-data with trade counts, which we do not hold (§11).
+data with trade counts, which we do not hold (§12).
 
 ---
 
@@ -794,7 +796,53 @@ not as a confirmed hypothesis.
 
 ---
 
-## 11. What is not established
+## 11. What this paper contributes
+
+Stated once, plainly, so it can be held against the evidence.
+
+**The failure mode.** When a mixed-security price feed is analysed without security-type
+classification, zero-range observations become heavily concentrated in non-equity instruments.
+That concentration distorts volatility diagnostics and can reverse the conclusion a researcher
+draws about estimator performance. In this market it does reverse it:
+
+| | pooled universe | ordinary equity |
+|---|---|---|
+| Parkinson exactly zero | 5.70% | **0.28%** |
+| thinnest quintile `RS ÷ Var(x)`, variance scale | 0.172 | **1.184** |
+| median trades/day | 111 | **165** |
+
+The thinnest decile of the pooled universe — the one carrying the apparent breakdown — is 94.3%
+non-equity.
+
+**What is not ours.** Restricting samples to ordinary common shares is long-standing practice in
+the emerging-market liquidity literature. The zero-range case, its origin in sparse trading, and
+prescriptions for handling it are documented in the bid–ask spread literature working on the same
+daily high–low inputs. That finite observation biases the range downward, particularly for
+lower-liquidity assets, is stated in the standing survey of range volatility. **We propose no new
+estimator, no zero-range correction, and no liquidity measure.**
+
+**What is ours.** Quantifying the downstream methodological consequences of an otherwise familiar
+sample-construction omission, in a real market where the filter cannot be applied mechanically
+because the exchange publishes no instrument-type field. The liquidity literature applies that
+filter to protect a *liquidity measure*; we show the same omission determines whether one concludes
+that range-based estimators are viable in the market at all. That is a different downstream
+question, and the answer flips.
+
+**A second instance of the same lesson, not a second instance of the same cause.** §7.1 shows that
+excluding days on which the daily price limit binds moves the thin-equity opening variance share
+from 0.641 to 0.742 — 1.2% of rows moving a headline figure by 15.8%. This is a sample-definition
+choice altering a headline number, which is the paper's general theme. **It is not evidence for the
+composition result and we do not claim it is**: the price limit and the instrument mix are
+unrelated mechanisms, and nothing here establishes a link between them.
+
+**Size, honestly.** This is a case study. If a researcher applies the filter the liquidity
+literature already prescribes, none of what §5 documents happens. The contribution is a measured
+account of what the omission costs, in a setting where following best practice first requires
+building a classifier — not a discovery that filtering matters.
+
+---
+
+## 12. What is not established
 
 - **A causal reading of the closing-rule change.** The treated indicators fall ~81% while the
   placebo indicators move under 5%, and none of 193 placebo windows reproduces the effect
