@@ -47,8 +47,11 @@ We then test that model's maintained assumption against the April 2026 widening 
 We therefore report this as a within-regime description, not as recovery of a latent quantity.
 
 The contribution is methodological. A frontier-market study that pools whatever an exchange
-publishes will find an illiquidity result that is really a composition result, and the two are
-distinguishable only with an instrument classification the exchange does not provide.
+publishes will find an illiquidity result that is really a composition result. Restricting to
+ordinary common shares is long-standing practice in the emerging-market liquidity literature, so
+the remedy is not new; what is new is the range-estimator form of the problem, the fact that the
+filter cannot be applied mechanically where the exchange publishes no instrument-type field, and
+a measurement of the artifact's size.
 
 ---
 
@@ -72,8 +75,13 @@ would keep if we could keep only one.
 1. **A composition artifact that mimics illiquidity.** Pooling the securities an exchange
    publishes, without an instrument filter the exchange does not supply, manufactures a
    liquidity gradient that is an asset-class gradient. On the pooled NEPSE universe the standard
-   diagnostics reproduce the textbook picture of estimator breakdown. On ordinary equity alone
-   they do not. We show the mechanism, quantify it, and give the classification rule.
+   diagnostics reproduce the textbook picture of estimator breakdown; on ordinary equity alone
+   they do not. The remedy — restricting to ordinary common shares — is standard practice in the
+   emerging-market liquidity literature and we claim no credit for it (§3.1). What we add is the
+   range-estimator version of that known problem, which is sharper because a range estimator with
+   `H = L` returns exactly zero rather than merely becoming noisy; the observation that the filter
+   is not mechanically available where no instrument-type field is published; and a measurement of
+   what its omission does.
 2. **A boundary condition on the leading daily-OHLC correction.** AddRS overstates at every
    equity liquidity level in this market while performing as designed on a dense index. We show
    this follows from the correction's construction wherever its premise does not hold, and we
