@@ -145,13 +145,17 @@ we take it up last rather than burying it.
 **Finite-sampling bias, and the discrete-extrema problem.** Rogers and Satchell (1991) identify
 the problem in the paper introducing their estimator — approximating the extrema of a drifting
 Brownian motion by those of a random walk "introduces error, often quite a serious error" — and
-offer a correction there. Martens and van Dijk (2007) propose a scaling correction for the
-downward bias of the realized range under infrequent trading; Christensen and Podolskij (2007)
-derive asymptotics; Christensen, Podolskij and Vetter (2009) bias-correct the realized range
-under microstructure noise. Rogers, Satchell and Yoon (1994) use a proxy for the number of
-transactions to correct discretisation bias directly. *(Whether the 1994 transaction-proxy
-correction is the same construction as the 1991 paper's is not established here: we have read the
-1991 abstract, not its derivation.)*
+offer a correction there. A related strand works on the **realized
+range** built from intraday data rather than the daily OHLC bar we use: Martens and van Dijk
+(2007) propose a bias correction that scales the realized range by the average level of the daily
+range, addressing microstructure frictions; Christensen and Podolskij (2007) derive asymptotics;
+Christensen, Podolskij and Vetter (2009) bias-correct the realized range under microstructure
+noise. That literature is adjacent rather than directly applicable here — it presumes intraday
+observations, which is precisely what a market like NEPSE does not publish — and we cite it to
+locate our setting, not to import its corrections. Rogers, Satchell and Yoon (1994) compare
+methods using high and low prices. *(We have read the 1991 abstract and the 1994 metadata, not
+either derivation; whether the 1994 paper's treatment of discretisation is the same construction
+as the 1991 paper's correction is not established here.)*
 
 **Correction from daily data alone.** Maheswaran and Kumar (2013) propose an **empirical**
 automatic bias correction (ABC) for extreme-value estimators requiring no knowledge of `N`, the
@@ -763,8 +767,9 @@ not as a confirmed hypothesis.
 - **Seven references remain unverified against primary sources**, marked as such in the
   bibliography. The quotation attributed to Jacob and Vipul (2008) and the opening-auction
   literature in §3 were verified during this revision; Christensen and Podolskij (2007),
-  Christensen, Podolskij and Vetter (2009), Martens and van Dijk (2007), Rogers, Satchell and Yoon
-  (1994), Corsi (2009) and Patton (2011) were not, and the Parkinson and Garman–Klass equations
+  Christensen, Podolskij and Vetter (2009), Corsi (2009) and Patton (2011) were not; Martens and
+  van Dijk (2007) and Rogers, Satchell and Yoon (1994) have verified metadata but unverified
+  derivations, and the Parkinson and Garman–Klass equations
   have been checked only against secondary sources.
 
 ---
@@ -822,8 +827,9 @@ estimation using extreme values of asset prices. *Economic Modelling* 33, 701–
 DOI 10.1016/j.econmod.2013.05.019. **(verified)** — ABC is described by its authors as an
 empirical procedure requiring no knowledge of `N`.
 
-Martens, M., and van Dijk, D. (2007). Measuring volatility with the realized range.
-*(unverified)*
+Martens, M., and van Dijk, D. (2007). Measuring volatility with the realized range. *Journal of
+Econometrics* 138(1), 181–207. **(verified)** — proposes the realized range from intraday data,
+with a bias correction scaling it by the average level of the daily range.
 
 Parkinson, M. (1980). The extreme value method for estimating the variance of the rate of return.
 *Journal of Business* 53(1), 61–65. *(metadata verified; equation unverified)*
@@ -837,7 +843,8 @@ prices. *Annals of Applied Probability* 1(4), 504–512. DOI 10.1214/aoap/117700
 Brownian motion, and the discrete-extrema error and a correction for it are stated there.
 
 Rogers, L. C. G., Satchell, S. E., and Yoon, Y. (1994). Estimating the volatility of stock prices:
-a comparison of methods that use high and low prices. *(unverified)*
+a comparison of methods that use high and low prices. *Applied Financial Economics* 4(3), 241–247.
+*(metadata verified; the specific treatment of discretisation attributed to it in §3 is not)*
 
 Vipul, and Jacob, J. (2007). Forecasting performance of extreme-value volatility estimators.
 *Journal of Futures Markets*. DOI 10.1002/fut.20283. *(metadata verified)*
