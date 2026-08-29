@@ -533,6 +533,11 @@ The correction substitutes the squared open-to-close return whenever an observed
 coincides with the open or the close — the monotone case where RS collapses to zero. It is
 **non-negative, and exactly zero** on the 44.9% of stock-days where neither indicator fires.
 
+*The downstream literature.* Kumar and Maheswaran (2014b) develop the forecasting treatment of
+AddRS. Our result concerns the estimator's premise in a particular market rather than its
+forecasting performance, so the two do not conflict; but any claim about AddRS's usefulness should
+be read against that work as well as against the derivation.
+
 *A successor we do not test.* Shaik and Maheswaran (2020) propose a further unbiased additive
 estimator from the same research group. We have not read or benchmarked it, so §8's result should
 be read as a boundary condition on **AddRS specifically**, not on daily-OHLC corrections in
@@ -1034,6 +1039,11 @@ and reports that heavy-tailed increments favour a different construction.
 Shaik, M., and Maheswaran, S. (2020). A new unbiased additive robust volatility estimation using
 extreme values of asset prices. *Financial Markets and Portfolio Management* 34, 313–347.
 DOI 10.1007/s11408-020-00355-3. **(verified)** — a successor to AddRS, not tested here.
+
+Kumar, D., and Maheswaran, S. (2014b). Modeling and forecasting the additive bias corrected
+extreme value volatility estimator. *International Review of Financial Analysis* 34, 166–176.
+DOI 10.1016/j.irfa.2014.06.002. **(verified)** — the downstream forecasting treatment of AddRS;
+not the derivation source, which is Kumar and Maheswaran (2014) above.
 
 Lesmond, D. A. (2005). Liquidity of emerging markets. *Journal of Financial Economics* 77(2),
 411–452. **(verified)**

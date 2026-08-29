@@ -127,6 +127,12 @@ that qualification.
 > them for a period. ABC (2013) is empirical and approximate; AddRS (2014) is theoretical and
 > exact under its own model. Only AddRS is implemented here.
 
+**Kumar and Maheswaran (2014b)**, "Modeling and forecasting the additive bias corrected extreme
+value volatility estimator", *International Review of Financial Analysis* 34, 166–176,
+DOI 10.1016/j.irfa.2014.06.002 — RECORD VERIFIED. The downstream forecasting treatment of AddRS,
+and **not** the derivation source; an earlier iteration of this project confused the two, citing
+this paper's volume and pages against the reflection-principle paper's claim.
+
 **Shaik and Maheswaran (2020)**, "A new unbiased additive robust volatility estimation using
 extreme values of asset prices", *Financial Markets and Portfolio Management* 34, 313–347,
 DOI 10.1007/s11408-020-00355-3 — RECORD VERIFIED. **A successor estimator from the same research
