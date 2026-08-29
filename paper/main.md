@@ -1,4 +1,6 @@
-# What Looks Like Illiquidity: Instrument Composition and Range-Based Volatility Estimation in a Frontier Market
+# When a Bias Correction Has No Bias to Correct
+
+**Range estimators, instrument composition, and a premise that fails in a frontier market**
 
 **Draft v0.5 · 2026-08-29 · not for circulation**
 
@@ -12,48 +14,48 @@
 
 ## Abstract
 
-Range-based volatility estimators are the standard recommendation for markets without options,
-and a large literature holds that infrequent trading biases them downward. We ask what that
-bias looks like in a frontier market, and find first that the question is easy to answer
-wrongly. Using 184,390 stock-days from the Nepal Stock Exchange, a market with no listed equity
-derivatives, we show that the apparent failure of range estimators in this market is generated
-almost entirely by **instrument composition rather than by illiquidity**. NEPSE publishes
-ordinary equity, corporate debentures, closed-end mutual funds and restricted promoter shares
-in one daily file with no instrument-type field. Sorted on trading intensity, the thinnest
-decile of that pooled universe is **94.3% non-equity**, and it is there that the estimators
-appear to break: the Parkinson estimator returns exactly zero on 53.9% of its stock-days.
-Restricted to the 291 ordinary equities, the picture inverts. Participation is 1.000 in every
-liquidity quintile, the thinnest equity quintile trades 37 times a day, `P(H = L)` is 0.28%
-across the sample, and Rogers–Satchell measured against a matched open-to-close benchmark is
-**0.998 on a variance scale** — a point estimate essentially at one, with no interval attached.
-On the evidence available here, NEPSE's ordinary equity market is liquid enough that range
-estimators work.
+Additive bias corrections for range-based volatility estimators are built for a regime in which the
+uncorrected estimator is downward-biased. We show what happens when that premise fails, and that
+establishing whether it fails turns on a sample-construction step the data do not supply.
 
-Three further results survive that correction. First, the additive bias correction AddRS
-(Kumar and Maheswaran, 2014) **overstates at every liquidity level we can measure** — from
-1.149 in the most active equity quintile to 1.323 in the second (SD-scale, against a matched
-open-to-close benchmark) — while landing on 1.005 for the NIFTY 50. This is a premise failure
-rather than an estimator failure: the correction is non-negative by construction, so wherever
-Rogers–Satchell is not downward-biased in expectation, adding it must overshoot in expectation.
-Second, a decomposition of the correction shows its boundary conditions fire on 91.9% of days
-in the thinnest quintile but supply only a small absolute correction each, while the most
-active quintile fires on 37.4% of days and supplies 4.5 times more per firing — so frequency of
-correction, absolute correction mass, and correction relative to the estimator are three
-different things and point in different directions. Third, NEPSE's pre-open call auction bands
-the opening return at ±2% of the previous close, and a censored-normal model puts observed
-opening dispersion about 30% below its fitted latent counterpart, roughly flat across liquidity.
-We then test that model's maintained assumption against the April 2026 widening of the band to
-±5% and it fails: the wider window does not reveal the distribution the narrower one implies.
-We therefore report this as a within-regime description, not as recovery of a latent quantity.
+On ordinary equity from the Nepal Stock Exchange — a market with no listed equity derivatives — the
+additive correction of Kumar and Maheswaran (2014) **overstates at every liquidity level we can
+measure**, from 1.149 in the most active quintile to 1.323 in the second against a matched
+open-to-close benchmark, while performing as designed on the NIFTY 50 at 1.005. This follows from
+the correction's premise rather than any defect in it, and we state it for the class: **any**
+correction of the form `RS + Δ` with `Δ ≥ 0` has positive expected bias in a regime where
+Rogers–Satchell is already unbiased. In thin NEPSE equity Rogers–Satchell sits at **0.998** against
+a matched benchmark on a variance scale, so the premise is satisfied nowhere. Stating the result
+for the class matters practically: it does not depend on which correction is tested.
 
-The contribution is a case study, and we state its limits with it. Restricting samples to ordinary
-common shares is long-standing practice in the emerging-market liquidity literature; the zero-range
-case and its origin in sparse trading are documented in the bid–ask spread literature working on the
-same daily inputs. **We propose no new estimator and no zero-range correction.** What we document is
-the downstream consequence of omitting a familiar filter in a market where it cannot be applied
-mechanically, because the exchange publishes no instrument-type field: that literature applies the
-filter to protect a *liquidity measure*, and the same omission determines whether one concludes that
-range-based estimators are viable in the market at all.
+Whether the premise *appears* satisfied depends on how the sample is built, and that is the paper's
+second result. NEPSE publishes ordinary equity, corporate debentures, closed-end mutual funds and
+restricted promoter shares in one daily file with **no instrument-type field**. Sorted on trading
+intensity, the thinnest decile of the pooled universe is **94.3% non-equity**, and it is there that
+the estimators appear to break — the Parkinson estimator returns exactly zero on 53.9% of its
+stock-days, and Rogers–Satchell reads 0.172 against the matched benchmark. Restricted to the 291
+ordinary equities the picture inverts: participation is 1.000 in every liquidity quintile, the
+thinnest equity quintile trades 37 times a day, `P(H = L)` falls from 5.70% to 0.28%, and the same
+ratio reads 1.184. **The pooled sample displays exactly the downward bias an additive correction
+exists to repair, and the equity sample does not.** The result survives every alternative equity
+definition we tried, the worst case sitting five times below the pooled rate.
+
+A decomposition of where the correction's mass comes from separates three things an aggregate
+statement merges: boundary conditions fire on 91.9% of days in the thinnest quintile against 37.4%
+in the most active, yet the most active quintile supplies the larger share of absolute correction
+mass because squared open-to-close returns are four times larger there, while relative to
+Rogers–Satchell itself the correction is 166% in the thinnest quintile against roughly 0.35–0.58
+elsewhere. Separately, we find the opening return carries 63.6% of close-to-close variance in thin
+equity against 26.9% in dense equity; we attempted a censored-normal recovery of latent opening
+dispersion behind NEPSE's ±2% pre-open band and report no estimate from it, because tested against
+the April 2026 widening of the band the model predicts 0.14% of opens beyond the new boundary where
+6.93% are observed.
+
+We propose no new estimator and no correction. Restricting samples to ordinary common shares is
+long-standing practice in the emerging-market liquidity literature, and the zero-range case is
+documented in the bid–ask spread literature working on the same daily inputs. The contribution is a
+boundary condition on a class of corrections, and a measured account of a sample-construction
+omission that decides whether that boundary is visible at all.
 
 ---
 
@@ -74,20 +76,30 @@ would keep if we could keep only one.
 
 **Contribution.**
 
-1. **A composition artifact that mimics illiquidity.** Pooling the securities an exchange
-   publishes, without an instrument filter the exchange does not supply, manufactures a
-   liquidity gradient that is an asset-class gradient. On the pooled NEPSE universe the standard
-   diagnostics reproduce the textbook picture of estimator breakdown; on ordinary equity alone
-   they do not. The remedy — restricting to ordinary common shares — is standard practice in the
-   emerging-market liquidity literature and we claim no credit for it (§3.1). What we add is the
-   range-estimator version of that known problem, which is sharper because a range estimator with
-   `H = L` returns exactly zero rather than merely becoming noisy; the observation that the filter
-   is not mechanically available where no instrument-type field is published; and a measurement of
-   what its omission does.
-2. **A boundary condition on the leading daily-OHLC correction.** AddRS overstates at every
-   equity liquidity level in this market while performing as designed on a dense index. We show
-   this follows from the correction's construction wherever its premise does not hold, and we
-   decompose where its mass actually comes from.
+1. **A boundary condition on additive corrections, stated for the class rather than one
+   estimator.** Any correction of the form `RS + Δ` with `Δ ≥ 0` almost surely has positive
+   expected bias in a regime where Rogers–Satchell is already unbiased against the target. AddRS
+   is one instance: it overstates at every equity liquidity level in this market while performing
+   as designed on a dense index. Stating the result for the class matters practically — it means
+   the conclusion does not depend on which member is tested, including successors whose equations
+   we could not obtain (§8.2).
+
+2. **A composition artifact that mimics illiquidity, and that manufactures the premise.** Pooling
+   the securities an exchange publishes, without an instrument filter the exchange does not
+   supply, produces a liquidity gradient that is an asset-class gradient. On the pooled NEPSE
+   universe the standard diagnostics reproduce the textbook picture of estimator breakdown; on
+   ordinary equity alone they do not. **Rogers–Satchell reads 0.172 against the matched benchmark
+   in the pooled thinnest quintile and 1.184 in the equity one** — the pooled sample displays
+   exactly the downward bias an additive correction exists to repair, and the equity sample does
+   not. The sample-construction step is therefore not housekeeping prior to the estimator
+   question; it determines the answer to it.
+
+   Restricting to ordinary common shares is standard practice in the emerging-market liquidity
+   literature and we claim no credit for it, nor for the zero-range case itself, which is
+   documented in the bid–ask spread literature (§3.1). What we add is that the filter is not
+   mechanically available where no instrument-type field is published, and a measurement of what
+   its omission costs.
+
 3. **A separation of four distinct failure modes** that "range estimators break in illiquid
    markets" conflates: path observation, premise failure, benchmark scope, and institutional
    censoring of the opening return.
@@ -194,7 +206,7 @@ against a strong reading of §9: on the NSE the opening auction is largely bypas
 is therefore **not** that thin securities concentrate repricing at the open, which is consistent
 with this literature; and whether NEPSE's opening share reflects genuine auction price discovery or
 the mechanical booking of a thin security's daily move at its one clearing event is the distinction
-§9.1 says we cannot identify.
+§9 says we cannot identify.
 
 ### 3.1 The constraint on our contribution: composition is a known problem
 
@@ -575,21 +587,34 @@ external check on our implementation as much as a result.
 the second quintile. The pattern is not monotone in intensity and does not disappear at 701
 trades per day.
 
-### 8.2 Why: the premise, not the mechanism
+### 8.2 Why: the premise, not the mechanism — and it is not about AddRS
 
 The correction is non-negative, so it can only help where Rogers–Satchell is biased downward.
-Stated at the level bias actually lives:
+Writing it at the level bias actually lives, and for the general case rather than one estimator:
 
-> Within a regime, `E[AddRS] = E[RS] + ½·E[x²(I_u + I_v)]`, and the second term is ≥ 0 with
-> equality only if `x²(I_u + I_v) = 0` almost surely. So if `E[RS]` already equals the target in
-> that regime, and the indicators fire with positive probability on days where `C ≠ O`, then
-> `E[AddRS]` exceeds the target: **AddRS has positive expected bias in that regime.**
+> **Proposition.** Let `Ĉ = RS + Δ` be any correction to Rogers–Satchell whose correction term
+> satisfies `Δ ≥ 0` almost surely. Then within any regime `E[Ĉ] = E[RS] + E[Δ] ≥ E[RS]`, with
+> equality only if `Δ = 0` almost surely. Hence if `E[RS]` already equals the target variance in
+> that regime and `P(Δ > 0) > 0`, then `E[Ĉ]` exceeds the target: **the corrected estimator has
+> positive expected bias there.**
 
-Table 8.1 shows `RS ÷ OC` at or above 0.98 in every equity quintile. The premise of the
-correction is not satisfied anywhere in this sample, so the overshoot follows.
+AddRS is one member of that class, with `Δ = ½·x²(I_u + I_v)`, which is non-negative and strictly
+positive whenever an extreme coincides with the open or close on a day with `C ≠ O`. Table 8.1
+shows `RS ÷ OC` at or above 0.98 in every equity quintile, so the premise is not satisfied anywhere
+in this sample and the overshoot follows.
 
-This is not a criticism of the estimator. It solves a different measurement problem, in a regime
-this market's equity does not occupy.
+**The argument does not depend on which correction is tested.** That matters for a reasonable
+objection to this section — that Shaik and Maheswaran (2020) propose a further additive estimator
+from the same research group, and we do not benchmark it. We could not obtain its equations, so we
+do not claim to have tested it. But the proposition applies to **any** correction of the additive
+non-negative form: the relevant question about a specific estimator is not whether it is more
+efficient than AddRS, but whether its correction term can be negative. If it cannot, it overshoots
+here too, for the same reason and by the same argument. We state the condition explicitly so a
+reader holding any such estimator can check it directly. **Whether the 2020 estimator satisfies
+`Δ ≥ 0` is unverified**, and we make no claim either way.
+
+This is not a criticism of AddRS. It solves a different measurement problem, in a regime this
+market's equity does not occupy.
 
 ### 8.3 Where the correction actually comes from
 
@@ -675,15 +700,13 @@ markets" conflates all four, and in this market the binding one is not the first
 
 ## 9. The opening auction and its band
 
-### 9.1 The mechanical channel must be excluded first
+Section 7 showed that the opening return carries 63.6% of close-to-close variance in thin equity
+against 26.9% in dense equity. This section describes the institution that produces it, and reports
+what we could not establish about it.
 
-A security that trades once has `O = H = L = C`, so its intraday return is zero *by construction*
-and the whole daily move is forced into the opening return. That is not price discovery
-migrating; it is intraday variance being unobservable. Removing such days is itself not clean —
-it conditions on intraday movement having occurred, which deflates the opening share. The two
-treatments **bracket rather than identify**, and we report the bracket.
-
-### 9.2 Both auction rules leave fingerprints
+**Both auction rules leave fingerprints.** Trading opens with a pre-open call (10:30–10:45) in
+which orders may be placed only within ±2% of the previous close, clearing at the volume-maximising
+price; if no orders match, the opening price is set to the previous close. Both rules are visible:
 
 | fingerprint | value |
 |---|---|
@@ -692,98 +715,38 @@ treatments **bracket rather than identify**, and we report the bracket.
 | p90 / p95 of \|r_co\| | 2.00% / 2.02% |
 | Open exactly equal to previous close (no-match rule) | 10.8% |
 
-
 ![Figure 7](../output/figures/fig15_opening_auction.png)
 
 **Figure 7.** Fingerprints of the pre-open call auction: the band pile-up and the no-match rule. *(Generated by `scripts/13_opening_auction.py`; source file `output/figures/fig15_opening_auction.png`.)*
 
-The opening return is not overnight news. It is a composite of overnight information, auction
-price discovery, correction of a stale previous close, and auction microstructure. For a security
-that traded twice yesterday, the previous close is itself a poor reading of latent value.
+**What the opening share does and does not mean.** A security that trades once has `O = H = L = C`,
+so its intraday return is zero *by construction* and the whole daily move is booked at the open.
+That is not price discovery migrating; it is intraday variance being unobservable. Removing
+degenerate days is not clean either — it conditions on intraday movement having occurred, which
+deflates the share. The two treatments **bracket rather than identify**, and we report the bracket
+rather than a point estimate. Agarwalla, Jacob and Pandey (2015) find that on India's NSE the
+opening call attracts very little volume and a large fraction of price discovery still occurs in
+the first fifteen minutes of continuous trading; whether NEPSE's opening share reflects genuine
+auction price discovery or the mechanical booking of a thin security's daily move is exactly the
+distinction we cannot make.
 
-### 9.3 Recovering what the band hides — exploratory
-
-The band censors the opening return **at a point known exactly**, which makes a model-based
-recovery available. We assume the observed opening price is a censored realization of a latent
-unconstrained opening return, and estimate latent dispersion by maximum likelihood from the
-interior observations plus the censored mass.
-
-> **The maintained assumption, stated because it is doing the work.** An order-price band changes
-> which orders investors may submit and plausibly which they choose to submit, so a boundary open
-> does not prove that an otherwise unconstrained auction would have cleared beyond it. What
-> follows is a structural estimate under that assumption. **We have not verified that the
-> band constitutes censoring in the econometric sense rather than a structural bound on the
-> observable, and until we do this result is exploratory and model-based, not structural
-> evidence.**
-
-On 227 equity securities in the ±2% regime:
-
-| | |
-|---|---|
-| Median share of opens pinned at the band | 27.4% |
-| Median latent ÷ observed opening dispersion | **1.295** |
-| Securities understated by more than 25% | 64.8% |
-
-
-![Figure 8](../output/figures/fig17_censored_open.png)
-
-**Figure 8.** Latent against observed opening dispersion under the censored-normal model. Exploratory; see §9.4 for the test this model fails. *(Generated by `scripts/16_censored_open.py`; source file `output/figures/fig17_censored_open.png`.)*
-
-The inflation factor is **roughly flat in liquidity** — 1.331, 1.300, 1.262, 1.273, 1.295 across
-trade-count quintiles. If the effect were a thin-trading phenomenon it should decline with
-activity, and it does not.
-
-**Limitation.** For a minority of securities the estimator returns a latent dispersion below the
-raw one, which is impossible under the model: their opening returns are bimodal, with mass near
-zero and mass at the band, and a single normal cannot represent that. They are excluded and
-counted. Excluding them biases the reported median upward, and we note that the median over all
-securities including them would be lower.
-
-### 9.4 The censoring assumption does not extrapolate across the band change
-
-The maintained assumption is testable in one place. In April 2026 the band widened from ±2% to
-±5%. If the band were pure censoring — a latent opening return observed through a window — the
-same latent distribution should govern both regimes, and the wider window should simply reveal
-more of it. We fit the censored normal on the ±2% regime (118,376 equity opens) and ask what it
-predicts for the ±5% regime (24,482 opens).
-
-| quantity | predicted from ±2% fit | observed under ±5% |
-|---|---|---|
-| share beyond ±5% | **0.14%** | **6.93%** |
-| \|r_co\| 90th percentile | 0.0259 | **0.0476** |
-| \|r_co\| 95th percentile | 0.0307 | 0.0493 |
-| SD of interior (\|r\| < 2%) opens | 0.0153 | **0.0095** |
-| share in the newly opened 2–5% corridor | 19.4% | 23.4% |
-
-**The extrapolation fails, and it fails in a diagnostic direction.** Under the wider band the
-interior of the distribution became *tighter* (SD 0.0095 against a predicted 0.0153) while far
-more mass sits at or beyond the new boundary than censoring predicts — 6.93% against 0.14%, a
-factor of roughly fifty. The no-match rate also rose from 9.1% to 17.4%. Tighter centre, fatter
+**A model-based recovery, attempted and not reported as a result.** The band censors the opening
+return at a known point, which makes a censored-normal recovery of latent dispersion available. We
+fitted one and it does not survive its own out-of-sample test. In April 2026 the band widened from
+±2% to ±5%. Under pure censoring the same latent distribution should govern both regimes, and the
+wider window should reveal more of it. Fitted on the ±2% regime, the model predicts **0.14%** of
+opens beyond ±5%; **6.93%** are observed, while the interior *tightens* (SD 0.0095 against a
+predicted 0.0153) and the no-match rate nearly doubles from 9.1% to 17.4%. Tighter centre, fatter
 extreme tail, more failures to clear: that is a change in behaviour, not a wider view of an
-unchanged latent variable.
+unchanged latent variable. The April revision was a bundle — band ±2%→±5%, daily limit 10%→15%, a
+new intraday circuit breaker, and round-the-clock order entry — so we cannot isolate the band as
+the cause. But the test does not need to: the model does not carry across the one regime change
+available, so **we report no latent-dispersion estimate.** A treatment that modelled the band and
+the daily price limit jointly (§7.1) is the obvious next step and we have not attempted it.
 
-**What we can and cannot conclude.** We cannot attribute this to the band alone, because the
-April 2026 revision was a bundle — band ±2%→±5%, daily price limit 10%→15%, a new intraday
-circuit breaker, and round-the-clock order entry. Any of those could alter opening behaviour. But
-the test does not depend on isolating the cause: it shows that the pure-censoring model does not
-carry across the one regime change we can observe.
-
-**We therefore report §9.3 as a within-regime descriptive summary of how much dispersion the
-observed opening returns understate under a fixed band, and not as recovery of a structural
-latent quantity.** The number is a model-based description; treating it as identification of
-suppressed volatility would require the assumption this test declines to support.
-
-### 9.5 A rule change we do not exploit
-
-Monthly fingerprints locate a sharp regime change: through 2026-03 the 95th percentile of the
-opening return is pinned at 2.01% every month; from April 2026 it jumps to ~4.9% and the boundary
-pile-up collapses from ~30% to ~3%. The reform is real, sharp and precisely dated. **It is not
-exploited here**, for two reasons: the window has been inspected, so any test run now would be
-exploratory; and the April 2026 revision was a bundle — band ±2%→±5%, daily price limit 10%→15%,
-a new intraday circuit breaker, and round-the-clock order entry. Four simultaneous changes give
-no clean treatment.
-
----
+**The rule change is not exploited.** It is sharp, exogenous and precisely dated, but the window
+has been inspected, so any test run now would be exploratory, and the bundling gives no clean
+treatment.
 
 ## 10. Held-out evaluation
 
@@ -875,10 +838,19 @@ for §7.1.
 
 Stated once, plainly, so it can be held against the evidence.
 
-**The failure mode.** When a mixed-security price feed is analysed without security-type
-classification, zero-range observations become heavily concentrated in non-equity instruments.
-That concentration distorts volatility diagnostics and can reverse the conclusion a researcher
-draws about estimator performance. In this market it does reverse it:
+**The boundary condition.** Any correction of the form `RS + Δ` with `Δ ≥ 0` almost surely has
+positive expected bias in a regime where Rogers–Satchell is already unbiased against the target.
+That is not a claim about one estimator, and it is why we can state a conclusion about corrections
+whose equations we could not obtain. AddRS is the instance we can measure: it overstates from 1.149
+to 1.323 across equity liquidity quintiles here, while landing on 1.005 for the NIFTY 50, and
+Rogers–Satchell sits at 0.998 against a matched benchmark in thin equity.
+
+**Why the sample decides whether that is visible.** When a mixed-security price feed is analysed
+without security-type classification, zero-range observations concentrate heavily in non-equity
+instruments. The pooled sample then displays exactly the downward bias an additive correction
+exists to repair — Rogers–Satchell at 0.172 against the matched benchmark in its thinnest quintile
+— while the equity sample reads 1.184. A researcher working the pooled feed would conclude the
+correction's premise holds and apply it; the premise is an artifact of the sample:
 
 | | pooled universe | ordinary equity |
 |---|---|---|
@@ -926,9 +898,9 @@ building a classifier — not a discovery that filtering matters.
   and use no causal language.
 - **The pre-open band is not shown to be censoring.** Fitted on the ±2% regime, the censored
   normal predicts 0.14% of opens beyond ±5%; 6.93% are observed, while the interior tightens
-  (§9.4). The assumption fails the one out-of-sample test available. The April 2026 change was a
-  bundle, so we cannot isolate the band as the cause — but the model does not extrapolate, and
-  §9.3 is reported as description rather than identification.
+  (§9). The assumption fails the one out-of-sample test available. The April 2026 change was a
+  bundle, so we cannot isolate the band as the cause — but the model does not extrapolate, so **no
+  latent-dispersion estimate is reported**.
 - **Simulation evidence is illustrative, not independent validation.** We audited the
   parameters for circularity and found none: the data-generating process is the textbook
   discretely-observed geometric Brownian motion the estimators are derived under, the trade grid
@@ -950,8 +922,8 @@ building a classifier — not a discovery that filtering matters.
   successor estimator, so §8 bounds AddRS and not the wider family of daily-OHLC corrections.
 - **The AddRS derivation is unverified from the primary source** (§8).
 - **The published 0.82 comparison is unresolved by data availability**, not by method (§7).
-- **The opening share of variance is bracketed, not identified** (§9.1).
-- **The April 2026 rule change is confounded** and unexploited (§9.4).
+- **The opening share of variance is bracketed, not identified** (§9).
+- **The April 2026 rule change is confounded** and unexploited (§9).
 - **The daily price limit is measured but not modelled.** §7.1 shows it moves the thin-equity
   opening share by 15.8%. A joint treatment of the ±2% band and the ±10% limit is the obvious next
   step and is not attempted here.
