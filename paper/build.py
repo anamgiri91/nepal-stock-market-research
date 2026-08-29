@@ -118,9 +118,21 @@ def main() -> int:
     title = re.search(r"^#\s+(.+)$", text, re.M)
     title = title.group(1) if title else "Manuscript"
 
+    # The manuscript carries display mathematics (Proposition 1), which markdown leaves as raw
+    # $...$ delimiters. MathJax renders them in the browser before the Print-to-PDF step. It is
+    # the one thing in this build that needs a network connection at view time; without it the
+    # equations still read, but as source rather than as typeset maths.
+    mathjax = (
+        '<script>window.MathJax={tex:{inlineMath:[["$","$"]],'
+        'displayMath:[["$$","$$"]],processEscapes:true},'
+        'options:{skipHtmlTags:["script","noscript","style","textarea","pre","code"]}};</script>\n'
+        '<script id="MathJax-script" async '
+        'src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js">'
+        "</script>\n"
+    )
     html = (
         "<!doctype html>\n<html lang='en'><head><meta charset='utf-8'>\n"
-        f"<title>{title}</title>\n<style>{CSS}</style>\n</head><body>\n{body}\n</body></html>\n"
+        f"<title>{title}</title>\n{mathjax}<style>{CSS}</style>\n</head><body>\n{body}\n</body></html>\n"
     )
 
     OUT.mkdir(exist_ok=True)
@@ -130,6 +142,9 @@ def main() -> int:
     words = len(re.findall(r"\b\w+\b", re.sub(r"<[^>]+>", " ", body)))
     print(f"  wrote {dest.relative_to(ROOT)}")
     print(f"  {words:,} words · {n_img} figures inlined · {body.count('<table>')} tables")
+    n_math = body.count("$$") // 2
+    if n_math:
+        print(f"  {n_math} display equations — MathJax renders them in-browser (needs network)")
     print("  open in a browser and Print to PDF (A4, background graphics on)")
 
     if args.open:

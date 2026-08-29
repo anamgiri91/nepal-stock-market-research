@@ -66,6 +66,14 @@ def main() -> int:
         check(html.count("<table>") >= src_tables - 1,
               "tables survive compilation", f"{html.count('<table>')} rendered / {src_tables} in source")
 
+    # --- mathematics survives compilation --------------------------------------------------
+    n_display = md.count("$$") // 2
+    if n_display:
+        check("MathJax" in html, "display equations have a renderer in the build",
+              f"{n_display} display equations")
+        check(md.count("$$") % 2 == 0, "display-math delimiters balanced in source")
+        check(md.count("$") % 2 == 0, "inline-math delimiters balanced in source")
+
     # --- cross-references ----------------------------------------------------------------
     have = {m.group(1) for m in re.finditer(r"^#{2,3} ([0-9]+(?:\.[0-9]+)?)\.? ", md, re.M)}
     want = {m.group(1) for m in re.finditer(r"§([0-9]+(?:\.[0-9]+)?)", md)}

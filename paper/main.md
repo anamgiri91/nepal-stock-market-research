@@ -117,15 +117,24 @@ would keep if we could keep only one.
    markets" conflates: path observation, premise failure, benchmark scope, and institutional
    censoring of the opening return.
 
-**Why this market.** Not because Nepal is intrinsically interesting, and not because it is thin —
-on ordinary equity it is not especially thin, which is part of the finding. The setting is chosen
-because **instrument composition is hidden in the source data**. NEPSE distributes ordinary equity,
-corporate debentures, closed-end mutual funds and restricted promoter shares in one daily file with
-no type field, so the filter the liquidity literature prescribes cannot be applied mechanically and
-must be reconstructed. That makes it possible to observe the counterfactual directly: the same
-securities, the same code, the same estimators, with and without the classification step, and to
-measure how the absence of that step propagates into estimator evaluation. In a market where type
-ships with the data, the omission is not available to study because nobody makes it.
+**Why this market.** NEPSE serves as a methodological laboratory, and the property that makes it
+one is structural: **instrument composition is hidden in the source data.** The exchange
+distributes ordinary equity, corporate debentures, closed-end mutual funds and restricted promoter
+shares in one daily file with no type field, so the filter the liquidity literature prescribes
+cannot be applied mechanically and must be reconstructed. That makes the counterfactual directly
+observable — the same securities, the same code, the same estimators, with and without the
+classification step — and lets us measure how the absence of that step propagates into estimator
+evaluation. Where type ships with the data, the omission is not available to study, because a
+researcher following ordinary practice does not make it.
+
+We do not claim NEPSE is the only exchange distributing an unlabelled mixed universe, and we have
+not surveyed which others do. The claim is narrower and testable: **wherever type is absent from
+the feed, classification is a research decision rather than a data attribute**, and this paper
+measures what that decision is worth. Whether the same artifact is latent in other emerging-market
+datasets is a question this setting raises and does not answer.
+
+The market is not chosen for thinness. On ordinary equity NEPSE is not especially thin, and that
+is part of the finding rather than a caveat to it.
 
 We do not claim to have discovered finite-sampling bias, nor its correction from daily data.
 Both are established. We ask where these results cease to apply, and find that the first thing
@@ -164,6 +173,20 @@ not obtained the governing exchange notice.
 
 **Structural closures.** The 2015 Gorkha earthquake (31 days), COVID-19 (~98 days across two
 2020 gaps), and annual Dashain/Tihar closures of 8–12 days.
+
+**How the band interacts with the benchmark, measured rather than assumed.** The ±2% pre-open band
+constrains the opening price, and the open is the reference point of the open-to-close benchmark
+against which §8 evaluates Rogers–Satchell, so it is natural to suspect the band distorts that
+denominator. It does on affected days, and not in the direction intuition suggests. On the **13.2%**
+of equity stock-days where the open is pinned at the band, `Var(r_oc)` is **2.53 times** its value
+on unpinned days, and close-to-close variance is likewise higher rather than suppressed. The reason
+is selection rather than mechanics: the band binds on days when the latent move is large, so pinned
+days are high-volatility days. A pinned open also leaves more of the day's move to be completed in
+continuous trading, which is the negative opening–intraday covariance §7 reports.
+
+The headline ratio is robust to it. Rogers–Satchell against the matched benchmark reads **1.041**
+across all equity days and **1.048** excluding pinned days — a shift too small to move any
+conclusion in §8.
 
 **A banded pre-open call auction.** Trading opens with a pre-open session (10:30–10:45) in which
 orders may be placed only within **±2% of the previous close**. The engine clears at the
@@ -616,11 +639,36 @@ trades per day.
 The correction is non-negative, so it can only help where Rogers–Satchell is biased downward.
 Writing it at the level bias actually lives, and for the general case rather than one estimator:
 
-> **Proposition.** Let `Ĉ = RS + Δ` be any correction to Rogers–Satchell whose correction term
-> satisfies `Δ ≥ 0` almost surely. Then within any regime `E[Ĉ] = E[RS] + E[Δ] ≥ E[RS]`, with
-> equality only if `Δ = 0` almost surely. Hence if `E[RS]` already equals the target variance in
-> that regime and `P(Δ > 0) > 0`, then `E[Ĉ]` exceeds the target: **the corrected estimator has
-> positive expected bias there.**
+Let $(\Omega,\mathcal{F},\{\mathcal{F}_t\},\mathbb{P})$ be a filtered probability space, with
+$\mathcal{F}_t$ the information available at the start of session $t$. Write $\sigma_t^2$ for the
+latent variance of session $t$, $\widehat{RS}_t$ for the Rogers–Satchell estimate formed from that
+session's open, high, low and close, and
+
+$$\widehat{\sigma}^2_{\text{corr},t} \;=\; \widehat{RS}_t + \Delta_t$$
+
+for any additively corrected estimator, where $\Delta_t$ is $\mathcal{F}_{t+1}$-measurable and
+integrable.
+
+> **Proposition 1.** Suppose $\Delta_t \geq 0$ $\mathbb{P}$-almost surely. Then
+> $$\mathbb{E}\!\left[\widehat{\sigma}^2_{\text{corr},t} \mid \mathcal{F}_t\right]
+> \;=\; \mathbb{E}\!\left[\widehat{RS}_t \mid \mathcal{F}_t\right] + \mathbb{E}\!\left[\Delta_t \mid \mathcal{F}_t\right]
+> \;\geq\; \mathbb{E}\!\left[\widehat{RS}_t \mid \mathcal{F}_t\right],$$
+> with equality if and only if $\Delta_t = 0$ almost surely on that conditioning set. Consequently,
+> if $\mathbb{E}[\widehat{RS}_t \mid \mathcal{F}_t] = \sigma_t^2$ and
+> $\mathbb{P}(\Delta_t > 0 \mid \mathcal{F}_t) > 0$, then
+> $$\mathbb{E}\!\left[\widehat{\sigma}^2_{\text{corr},t} \mid \mathcal{F}_t\right] > \sigma_t^2 .$$
+
+*Proof.* Immediate from linearity of conditional expectation and the fact that a non-negative
+random variable has non-negative conditional expectation, strictly positive unless the variable
+vanishes almost surely. $\square$
+
+**What the proposition does and does not deliver.** It is an implication, not an empirical finding,
+and its antecedent — $\mathbb{E}[\widehat{RS}_t \mid \mathcal{F}_t] = \sigma_t^2$ — is **not
+directly testable here**, because $\sigma_t^2$ is unobserved. Everything empirical in this section
+concerns a proxy for that antecedent, and §8.2 states the limits of that substitution. The
+proposition's value is that it holds for the whole additive class: it converts a question about
+which correction one happens to test into a question about a single property of the correction
+term.
 
 AddRS is one member of that class, with `Δ = ½·x²(I_u + I_v)`, which is non-negative and strictly
 positive whenever an extreme coincides with the open or close on a day with `C ≠ O`. Table 8.1
