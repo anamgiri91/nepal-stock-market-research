@@ -139,6 +139,10 @@ experiment (§11).
 
 ## 3. Related literature, and what is not claimed here
 
+> A fuller review, with a verification status on every source and a ledger mapping each of this
+> paper's claims to the strand that supports it, is in the companion document
+> **`literature-review.md`**. This section states only what bears directly on the results.
+
 Four strands bound this paper. The fourth is the one that constrains our contribution most, and
 we take it up last rather than burying it.
 
@@ -764,12 +768,13 @@ not as a confirmed hypothesis.
 - **Circuit-breaker censoring of the continuous session is unmodelled.**
 - **2026-07-25's status as a special session is provisional**, pending an exchange notice.
 - **Panel A's 8.05% OHLC violation rate versus panel B's 0.60% is unexplained.**
-- **Seven references remain unverified against primary sources**, marked as such in the
-  bibliography. The quotation attributed to Jacob and Vipul (2008) and the opening-auction
-  literature in §3 were verified during this revision; Christensen and Podolskij (2007),
-  Christensen, Podolskij and Vetter (2009), Corsi (2009) and Patton (2011) were not; Martens and
-  van Dijk (2007) and Rogers, Satchell and Yoon (1994) have verified metadata but unverified
-  derivations, and the Parkinson and Garman–Klass equations
+- **Four primary texts remain unread**, and their equations are taken from secondary or
+  author-reproduced sources: the AddRS derivation, Parkinson's estimator, Garman–Klass's estimator
+  (where two distinct forms circulate and we implement the simplified one), and Rogers–Satchell's
+  own discretisation correction. Every bibliographic record is now verified; `literature-review.md`
+  §J lists what remains open. One claim in this paper is provisional pending a reading of Chou,
+  Chou and Liu's survey of the range-volatility literature: that the zero-**range** analogue of the
+  contaminated zero-**return** liquidity proxy is undocumented, and the Parkinson and Garman–Klass equations
   have been checked only against secondary sources.
 
 ---
@@ -791,12 +796,14 @@ inference with clustered errors. *Review of Economics and Statistics* 90(3), 414
 clusters; wild cluster bootstrap-t provides the refinement.
 
 Christensen, K., and Podolskij, M. (2007). Realized range-based estimation of integrated
-variance. *(unverified)*
+variance. *Journal of Econometrics* 141(2), 323–349. **(verified)** — intraday realized range.
 
 Christensen, K., Podolskij, M., and Vetter, M. (2009). Bias-correcting the realized range-based
-variance in the presence of market microstructure noise. *(unverified)*
+variance in the presence of market microstructure noise. *Finance and Stochastics* 13(2), 239–268.
+DOI 10.1007/s00780-009-0089-9. **(verified)** — intraday.
 
-Corsi, F. (2009). A simple approximate long-memory model of realized volatility. *(unverified)*
+Corsi, F. (2009). A simple approximate long-memory model of realized volatility. *Journal of
+Financial Econometrics* 7(2), 174–196. DOI 10.1093/jjfinec/nbp001. **(verified)**
 
 Garman, M. B., and Klass, M. J. (1980). On the estimation of security price volatilities from
 historical data. *Journal of Business* 53(1), 67–78. *(metadata verified; equation unverified —
@@ -818,6 +825,13 @@ unverified — operational equations taken from a later author reproduction and 
 Lesmond, D. A. (2005). Liquidity of emerging markets. *Journal of Financial Economics* 77(2),
 411–452. **(verified)**
 
+Lesmond, D. A., Ogden, J. P., and Trzcinka, C. A. (1999). A new estimate of transaction costs.
+*Review of Financial Studies* 12(5), 1113–1141. **(verified)** — estimates transaction costs from
+the incidence of zero returns via a limited dependent variable model.
+
+Lo, A. W., and MacKinlay, A. C. (1990). An econometric analysis of nonsynchronous trading.
+*Journal of Econometrics* 45(1–2), 181–211. **(verified)**
+
 Maheswaran, S., Balasubramanian, G., and Yoonus, C. A. (2011). Post-colonial finance. *Journal of
 Emerging Market Finance* 10(2), 175–196. DOI 10.1177/097265271101000202. **(verified)** — source
 of the extreme-value variance ratio.
@@ -835,7 +849,8 @@ Parkinson, M. (1980). The extreme value method for estimating the variance of th
 *Journal of Business* 53(1), 61–65. *(metadata verified; equation unverified)*
 
 Patton, A. J. (2011). Volatility forecast comparison using imperfect volatility proxies.
-*(unverified)*
+*Journal of Econometrics* 160(1), 246–256. **(verified)** — imperfect proxies distort standard
+forecast comparisons; conditions on the loss function are required for robust rankings.
 
 Rogers, L. C. G., and Satchell, S. E. (1991). Estimating variance from high, low and closing
 prices. *Annals of Applied Probability* 1(4), 504–512. DOI 10.1214/aoap/1177005835.
