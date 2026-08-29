@@ -210,27 +210,40 @@ says this is standard practice is right.
 
 What we add is narrower and, we think, still worth having.
 
-1. **The range-estimator analogue has not, to our knowledge, been documented.** The zero-*return*
-   rate is a known-contaminated liquidity proxy. `P(H = L)` — the zero-*range* rate — is its
-   range-estimator counterpart, and it inherits the same contamination while biting harder: a
-   range estimator with `H = L` does not become noisy, it returns exactly zero and stops being a
-   volatility proxy at all. In our data the pooled zero-range rate is 5.70% against 0.28% on
-   ordinary equity, a factor of twenty generated entirely by composition.
-2. **The filter is not mechanically available here.** In the markets where this protocol was
-   developed, security type comes with the data. NEPSE publishes no instrument-type field, so
-   applying the standard cleaning rule requires reconstructing type from ticker convention and
-   validating it against par value (§5). A researcher following best practice cannot execute it
-   without building a classifier first, and a researcher not looking for the problem has nothing
-   to alert them.
-3. **We quantify what the omission does to estimator diagnostics specifically**, rather than to a
-   liquidity proxy, and show that the entire apparent breakdown of the range family in this market
-   is attributable to it.
+1. **The zero-range case itself is documented, and we claim nothing for it.** `P(H = L)` — the
+   zero-*range* rate — is the range-estimator counterpart of the contaminated zero-*return* proxy,
+   and it bites harder: a range estimator with `H = L` does not become noisy, it returns exactly
+   zero and stops being a volatility proxy at all. But the phenomenon, its origin in sparse
+   trading, and a prescription for handling it are all established in the bid–ask spread
+   literature, which works on the same daily high–low data. Corwin and Schultz (2012) note that
+   with very infrequent trading there may be one trade or none, giving identical high and low
+   prices, and carry the previous day's extrema forward. Ardia, Guidotti and Kroencke (2024) show
+   popular spread estimators are downward biased under infrequent trading and derive estimators
+   that account for discrete observation. **An earlier draft of this paper claimed the analogue was
+   undocumented; that claim is withdrawn.**
+2. **What we have not found connected to it is the composition problem.** In a feed publishing no
+   instrument-type field, the zero-range rate sorts securities by *asset class* rather than by
+   liquidity, so a liquidity gradient built from it is an asset-class gradient. That is a
+   sample-construction claim, not a claim about estimator theory.
+3. **The filter is not mechanically available here.** In the markets where this protocol was
+   developed, security type comes with the data. NEPSE publishes none, so applying the standard
+   cleaning rule requires reconstructing type from ticker convention and validating it against par
+   value (§5). A researcher following best practice cannot execute it without building a classifier
+   first, and a researcher not looking for the problem has nothing to alert them.
+4. **We quantify what the omission does to estimator diagnostics specifically**, rather than to a
+   liquidity proxy: pooled zero-range 5.70% against 0.28% on ordinary equity, and a thinnest decile
+   that is 94.3% non-equity.
+
+**We propose no correction for zero-range observations**, and the paper should not be read as
+offering one. The contribution is diagnostic.
 
 > **No novelty is claimed for the finite-sampling mechanism, for its correction from daily data,
-> or for the practice of restricting samples to ordinary equity.** What we claim is that the
-> empirical signature of estimator failure, in a market whose published universe mixes asset
-> classes and labels none of them, is not identified without that restriction — and that the
-> resulting artifact is large, specific, and reproducible.
+> for the practice of restricting samples to ordinary equity, or for recognising that sparse
+> trading produces zero ranges.** Chou, Chou and Liu's survey of the range literature states that
+> finite observation biases the range downward, particularly for lower-liquidity assets. What we
+> claim is that the empirical signature of estimator failure, in a market whose published universe
+> mixes asset classes and labels none of them, is not identified without that restriction — and
+> that the resulting artifact is large, specific, and reproducible.
 
 ## 4. Data
 
@@ -817,9 +830,10 @@ not as a confirmed hypothesis.
   author-reproduced sources: the AddRS derivation, Parkinson's estimator, Garman–Klass's estimator
   (where two distinct forms circulate and we implement the simplified one), and Rogers–Satchell's
   own discretisation correction. Every bibliographic record is now verified; `literature-review.md`
-  §J lists what remains open. One claim in this paper is provisional pending a reading of Chou,
-  Chou and Liu's survey of the range-volatility literature: that the zero-**range** analogue of the
-  contaminated zero-**return** liquidity proxy is undocumented, and the Parkinson and Garman–Klass equations
+  §J lists what remains open. The provisional novelty claim carried by an earlier draft — that the
+  zero-**range** analogue of the contaminated zero-**return** proxy was undocumented — has been
+  **withdrawn**: Corwin and Schultz (2012) and Ardia, Guidotti and Kroencke (2024) document the
+  zero-range case and its origin in sparse trading, and the Parkinson and Garman–Klass equations
   have been checked only against secondary sources.
 
 ---
@@ -857,6 +871,21 @@ note that two distinct forms circulate, and we implement the simplified one)*
 Agarwalla, S. K., Jacob, J., and Pandey, A. (2015). Impact of the introduction of call auction on
 price discovery: evidence from the Indian stock market using high-frequency data. *International
 Review of Financial Analysis* 39, 167–178. **(verified)**
+
+Ardia, D., Guidotti, E., and Kroencke, T. A. (2024). Efficient estimation of bid–ask spreads from
+open, high, low, and close prices. *Journal of Financial Economics* 161, 103916.
+DOI 10.1016/j.jfineco.2024.103916. **(verified)**
+
+Akay, O., Griffiths, M. D., and Winters, D. B. (2010). On the robustness of range-based volatility
+estimators. *Journal of Financial Research* 33(2), 179–199. **(verified)**
+
+Chou, R. Y., Chou, H., and Liu, N. Range volatility: a review of models and empirical studies.
+*Handbook of Financial Econometrics and Statistics*, Springer, ch. 74, 2029–2050. **(verified —
+chapter read)**
+
+Corwin, S. A., and Schultz, P. (2012). A simple way to estimate bid–ask spreads from daily high and
+low prices. *Journal of Finance* 67(2). **(verified)** — prescribes carrying forward the previous
+day's extrema when infrequent trading yields identical high and low prices.
 
 Ibikunle, G. (2015). Opening and closing price efficiency: do financial markets need the call
 auction? *Journal of International Financial Markets, Institutions and Money* 34, 208–227.

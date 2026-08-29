@@ -65,13 +65,35 @@ matter for us and are easy to miss:
 Drift-independent and handles opening jumps; requires a window because two of its components are
 cross-day variances.
 
-**Chou, Chou and Liu (2009)**, "Range volatility models and their applications in finance", in
-*Handbook of Quantitative Finance and Risk Management*, Springer; and **Chou, Chou and Liu
-(2015)**, "Range volatility: a review of models and empirical studies" — RECORD VERIFIED. The
-standing survey of the field, covering range definitions, range-based volatility models through
-the CARR model, range-based multivariate models, and the realized range. **A revision of this
-paper should engage with it directly**: it is the natural place a referee will check whether our
-framing of the family is complete, and we have not yet read it.
+**Chou, Chou and Liu**, "Range volatility: a review of models and empirical studies", *Handbook of
+Financial Econometrics and Statistics*, Springer, chapter 74, pp. 2029–2050 — **CHAPTER READ**
+(by the author, 2026-08-29). The standing survey of the field. What it contains matters to us on
+four counts, and the third is the one that constrains us:
+
+1. **Estimator assumptions**, as we state them: Parkinson and Garman–Klass require geometric
+   Brownian motion with zero drift; Rogers–Satchell permits non-zero drift; Yang–Zhang additionally
+   allows overnight jumps.
+2. **Outlier sensitivity** — "the range is very sensitive to the outliers" — with Chou (2005)'s
+   quantile range offered as a robust alternative. The literature already treats the raw range as
+   problematic.
+3. **Finite observations and downward bias.** The chapter states that only finite observations are
+   available to construct the range, that this creates bias **particularly for lower-liquidity
+   assets and finite transaction volume**, and that observed highs and lows can fall inside the true
+   extrema, producing downward-biased estimators. **This is closer to our territory than an earlier
+   draft of this review assumed**, and it means the mechanism we document is recognised in the
+   standing survey, even if our particular measurement of it is not.
+4. **Microstructure and bias-adjusted realized range**, citing Akay et al. (2010).
+
+**What the chapter does *not* contain:** any correction designed for degenerate zero-range
+observations, or an analogue of AddRS for the `H = L` case. That is a real negative finding — but
+it establishes only that *this review* does not document it, not that nobody has. See §D.2, where
+the claim it was supporting has since been retracted on other evidence.
+
+**Akay, Griffiths and Winters (2010)**, "On the robustness of range-based volatility estimators",
+*Journal of Financial Research* 33(2), 179–199 — RECORD VERIFIED. Examines Parkinson's estimator in
+the federal funds market around predictable interday volatility patterns, finding range-based
+estimates can remove upward bias associated with microstructure noise. **Relevant, but not a
+zero-range treatment** — an earlier draft of this review flagged it as a candidate and it is not.
 
 ---
 
@@ -196,14 +218,9 @@ pooling debentures, closed-end funds and promoter shares manufactures a spurious
 gradient — is a specific instance of a problem this literature already solved. A referee who
 raises this is right, and the paper concedes it in §3.1 rather than waiting to be told.
 
-**2. The range-estimator analogue appears not to be documented.** `P(H = L)` — the zero-**range**
-rate — is the range-estimator counterpart of the zero-**return** rate, and it inherits the same
-contamination. It bites harder: a return-based liquidity proxy contaminated by non-equity
-instruments is *mismeasured*, whereas a range estimator on a bar with `H = L` returns **exactly
-zero** and ceases to be a volatility proxy at all. In our data the pooled zero-range rate is 5.70%
-against 0.28% on ordinary equity — a factor of twenty, generated entirely by composition. We have
-not located a treatment of this in the range-volatility literature, and Chou, Chou and Liu is the
-place to check before claiming it (see §A).
+**2. RETRACTED — the zero-range case IS documented, in the spread literature.** See §D.2. An
+earlier version of this review claimed the zero-**range** analogue of the zero-**return** proxy was
+undocumented. That claim does not survive.
 
 **3. LOT's limited-dependent-variable model is the right comparison for our §9.** Both LOT and our
 censored-open estimator model an *unobserved* price movement through a *censored* observable. The
@@ -211,6 +228,48 @@ parallel is close enough that a revision should draw it explicitly — and close
 identification concerns transfer. Our §9.4 finding that the censoring assumption fails to
 extrapolate across the April 2026 band change is precisely the kind of check the LOT literature
 would demand.
+
+### D.2 The claim we had to retract
+
+Our headline novelty claim was that the zero-**range** rate `P(H = L)`, as the range-estimator
+counterpart of the contaminated zero-**return** liquidity proxy, was undocumented. **It is
+documented, and we withdraw the claim.** The treatment sits in the bid–ask spread literature, which
+works on the same daily high–low data we do.
+
+**Corwin and Schultz (2012)**, "A simple way to estimate bid–ask spreads from daily high and low
+prices", *Journal of Finance* 67(2) — CLAIM VERIFIED. Their estimator derives the spread from
+high–low ratios over one- and two-day intervals, exploiting that the variance component of the
+high–low ratio scales with the interval while the spread component does not. Critically for us,
+they address the degenerate case explicitly: with very infrequent trading there are sometimes no
+transactions, or only one trade in a day, giving **identical high and low prices and zero range**.
+Their prescription is a rule, not an omission — where the trade price falls inside the previous
+day's range, the previous day's high and low are carried forward.
+
+**Ardia, Guidotti and Kroencke (2024)**, "Efficient estimation of bid–ask spreads from open, high,
+low, and close prices", *Journal of Financial Economics* 161, 103916,
+DOI 10.1016/j.jfineco.2024.103916 — CLAIM VERIFIED. Popular spread estimators are **downward biased
+when trading is infrequent**; the paper derives asymptotically unbiased estimators by explicitly
+accounting for discretely observed prices, and reports them unbiased even in simulations where a
+single trade per period is expected. Related work extends the Corwin–Schultz construction to days
+with no trade at all, and to corporate bonds.
+
+> **What this costs us and what it leaves.** The zero-range phenomenon, its origin in sparse
+> trading, and the need to handle it are all established — in a neighbouring literature using the
+> same inputs, in the *Journal of Finance* and the *Journal of Financial Economics*. A referee who
+> knows the spread literature would have raised this immediately, and the paper must not claim
+> otherwise.
+>
+> Two things survive, and they are about **sample construction rather than estimator theory**.
+> First, we are not aware of this being connected to the *composition* problem: that in an exchange
+> feed publishing no instrument-type field, the zero-range rate sorts securities by asset class
+> rather than by liquidity, so a liquidity gradient built from it is an asset-class gradient.
+> Second, the quantification — pooled 5.70% against 0.28% on ordinary equity, and a thinnest decile
+> that is 94.3% non-equity.
+>
+> **We propose no zero-range correction and should stop implying we might.** Our contribution is
+> diagnostic: what a sample looks like when the filter the liquidity literature already prescribes
+> is not applied, and cannot be applied mechanically. That is smaller than the earlier framing and
+> it is what the evidence supports.
 
 ---
 
