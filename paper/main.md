@@ -1,6 +1,6 @@
-# When a Bias Correction Has No Bias to Correct
+# Does the Bias Exist?
 
-**Range estimators, instrument composition, and a premise the data cannot support**
+**Sample composition and additive corrections to range-based volatility estimators in a frontier market**
 
 **Draft v0.5 · 2026-08-29 · not for circulation**
 
@@ -106,6 +106,16 @@ would keep if we could keep only one.
 3. **A separation of four distinct failure modes** that "range estimators break in illiquid
    markets" conflates: path observation, premise failure, benchmark scope, and institutional
    censoring of the opening return.
+
+**Why this market.** Not because Nepal is intrinsically interesting, and not because it is thin —
+on ordinary equity it is not especially thin, which is part of the finding. The setting is chosen
+because **instrument composition is hidden in the source data**. NEPSE distributes ordinary equity,
+corporate debentures, closed-end mutual funds and restricted promoter shares in one daily file with
+no type field, so the filter the liquidity literature prescribes cannot be applied mechanically and
+must be reconstructed. That makes it possible to observe the counterfactual directly: the same
+securities, the same code, the same estimators, with and without the classification step, and to
+measure how the absence of that step propagates into estimator evaluation. In a market where type
+ships with the data, the omission is not available to study because nobody makes it.
 
 We do not claim to have discovered finite-sampling bias, nor its correction from daily data.
 Both are established. We ask where these results cease to apply, and find that the first thing
@@ -320,7 +330,8 @@ prices moved. Any turnover-conditioned rule misclassifies them.
 
 ## 5. Two universes
 
-This is the paper's first result and the reason for everything that follows.
+This is the mechanism behind §8, and the reason the estimator result needs a sample-construction
+step before it can be stated at all.
 
 NEPSE's daily files carry **no instrument-type field**. They contain ordinary equity, corporate
 debentures, closed-end mutual funds and restricted promoter shares in one table. Type is
@@ -533,7 +544,7 @@ scales and not a replication.)*
 
 ---
 
-## 8. AddRS: a correction applied where we find no bias for it to correct
+## 8. AddRS: a correction applied where no bias is detectable against the available benchmark
 
 The additive bias correction of Kumar and Maheswaran (2014) reduces exactly. With `b = ln(H/O)`,
 `c = ln(L/O)`, `x = ln(C/O)`, `u = 2b − x`, `v = 2c − x`:
@@ -553,8 +564,8 @@ AddRS. Our result concerns the estimator's premise in a particular market rather
 forecasting performance, so the two do not conflict; but any claim about AddRS's usefulness should
 be read against that work as well as against the derivation.
 
-*A successor we do not test.* Shaik and Maheswaran (2020) propose a further unbiased additive
-estimator from the same research group. We have not read or benchmarked it, so §8's result should
+*A successor we do not test.* Shaik and Maheswaran (2020) propose a further additive estimator from
+the same research group, which they report as unbiased under their own framework. We have not read or benchmarked it, so §8's result should
 be read as a boundary condition on **AddRS specifically**, not on daily-OHLC corrections in
 general.
 
