@@ -181,9 +181,18 @@ agree with theirs, in a market considerably thinner than the one they study.
 **Opening call auctions.** Ibikunle (2015) finds on the London Stock Exchange that the opening
 auction produces highly efficient prices for the highest-volume stocks, while lower-volume stocks
 reach comparable efficiency only after continuous trading begins, with a high rate of failure to
-open at the call among low-volume securities. Work on India's NSE finds call-auction volumes low
-and intraday dynamics largely unaffected by its introduction. Our contribution is **not** that
-thin securities concentrate repricing at the open, which is consistent with that literature.
+open at the call among low-volume securities. Agarwalla, Jacob and Pandey (2015), studying the
+2010 reintroduction of the opening call auction on India's NSE with high-frequency data, find the
+auctions attract very little volume, leave the intraday pattern of volume and volatility unchanged,
+and that a large fraction of price discovery still occurs in the **first fifteen minutes of
+continuous trading** rather than at the call.
+
+The second result is a direct comparator, since NIFTY is our cross-market benchmark, and it cuts
+against a strong reading of §9: on the NSE the opening auction is largely bypassed. Our contribution
+is therefore **not** that thin securities concentrate repricing at the open, which is consistent
+with this literature; and whether NEPSE's opening share reflects genuine auction price discovery or
+the mechanical booking of a thin security's daily move at its one clearing event is the distinction
+§9.1 says we cannot identify.
 
 ### 3.1 The constraint on our contribution: composition is a known problem
 
@@ -448,6 +457,11 @@ $$\text{AddRS} = \text{RS} + \tfrac{x^2}{2}\left(\mathbb{1}_u + \mathbb{1}_v\rig
 The correction substitutes the squared open-to-close return whenever an observed extreme
 coincides with the open or the close — the monotone case where RS collapses to zero. It is
 **non-negative, and exactly zero** on the 44.9% of stock-days where neither indicator fires.
+
+*A successor we do not test.* Shaik and Maheswaran (2020) propose a further unbiased additive
+estimator from the same research group. We have not read or benchmarked it, so §8's result should
+be read as a boundary condition on **AddRS specifically**, not on daily-OHLC corrections in
+general.
 
 *Provenance note.* The 2014 article was not obtained. The equations above are taken from a later
 open-access paper by the same author that reproduces them, were checked term-for-term against
@@ -760,7 +774,8 @@ not as a confirmed hypothesis.
 - **No security-level cross-market comparison exists.** Every cross-market statement rests on
   index-versus-index or index-versus-stock contrasts. Constituent-level NIFTY data with trade
   counts would be required.
-- **ABC is not implemented** and we make no claim about it.
+- **ABC is not implemented** and we make no claim about it. Nor is Shaik and Maheswaran's (2020)
+  successor estimator, so §8 bounds AddRS and not the wider family of daily-OHLC corrections.
 - **The AddRS derivation is unverified from the primary source** (§8).
 - **The published 0.82 comparison is unresolved by data availability**, not by method (§7).
 - **The opening share of variance is bracketed, not identified** (§9.1).
@@ -809,6 +824,10 @@ Garman, M. B., and Klass, M. J. (1980). On the estimation of security price vola
 historical data. *Journal of Business* 53(1), 67–78. *(metadata verified; equation unverified —
 note that two distinct forms circulate, and we implement the simplified one)*
 
+Agarwalla, S. K., Jacob, J., and Pandey, A. (2015). Impact of the introduction of call auction on
+price discovery: evidence from the Indian stock market using high-frequency data. *International
+Review of Financial Analysis* 39, 167–178. **(verified)**
+
 Ibikunle, G. (2015). Opening and closing price efficiency: do financial markets need the call
 auction? *Journal of International Financial Markets, Institutions and Money* 34, 208–227.
 DOI 10.1016/j.intfin.2014.11.014. **(verified)**
@@ -821,6 +840,14 @@ Kumar, D., and Maheswaran, S. (2014). A reflection principle for a random walk w
 for volatility estimation using extreme values of asset prices. *Economic Modelling* 38, 33–44.
 DOI 10.1016/j.econmod.2013.11.045. **(metadata verified; derivation and unbiasedness proof
 unverified — operational equations taken from a later author reproduction and checked against it)*
+
+Meilijson, I. (2008). The Garman–Klass volatility estimator revisited. arXiv:0807.3492.
+**(verified)** — confirms the efficiency figure of 7.4, shows the estimator is not minimum-variance,
+and reports that heavy-tailed increments favour a different construction.
+
+Shaik, M., and Maheswaran, S. (2020). A new unbiased additive robust volatility estimation using
+extreme values of asset prices. *Financial Markets and Portfolio Management* 34, 313–347.
+DOI 10.1007/s11408-020-00355-3. **(verified)** — a successor to AddRS, not tested here.
 
 Lesmond, D. A. (2005). Liquidity of emerging markets. *Journal of Financial Economics* 77(2),
 411–452. **(verified)**

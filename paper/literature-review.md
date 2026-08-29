@@ -37,6 +37,16 @@ coefficients 0.511 / 0.019 / 0.383, and a simplified `0.5 ln(H/L)² − (2 ln 2 
 recommended estimator has not been established from the primary text. This matters enough to be
 flagged rather than glossed.
 
+**Meilijson (2008)**, "The Garman–Klass volatility estimator revisited", arXiv:0807.3492 —
+CLAIM VERIFIED (abstract read in full). Useful to us on three counts. It confirms the Garman–Klass
+efficiency figure of **7.4** relative to `(CLOSE−OPEN)²`, and states that GK "is widely believed to
+be of minimal variance". It then **disproves that belief**, exhibiting an unbiased estimator with
+efficiency 7.7322 against a Cramér–Rao bound of 8.471 that cannot be attained. And it reports that
+regression-fitted estimators on its compressed statistic "markedly out-perform" the Garman–Klass
+family **when increments are heavy-tailed** — which is precisely the regime AddRS assumes, since
+its maintained model is a symmetric double-exponential random walk. Notably it does **not** mention
+the 0.511 / 0.019 / 0.383 coefficients, so that form's provenance remains unestablished.
+
 **Rogers and Satchell (1991)**, *Annals of Applied Probability* 1(4), 504–512,
 DOI 10.1214/aoap/1177005835 — CLAIM VERIFIED (abstract read in full). Drift-independence is the
 paper's stated contribution: the estimator is unbiased "whatever the drift c", under log price
@@ -94,6 +104,15 @@ that qualification.
 > **These are two different procedures from two different papers**, and the project conflated
 > them for a period. ABC (2013) is empirical and approximate; AddRS (2014) is theoretical and
 > exact under its own model. Only AddRS is implemented here.
+
+**Shaik and Maheswaran (2020)**, "A new unbiased additive robust volatility estimation using
+extreme values of asset prices", *Financial Markets and Portfolio Management* 34, 313–347,
+DOI 10.1007/s11408-020-00355-3 — RECORD VERIFIED. **A successor estimator from the same research
+group, six years after AddRS, which this project does not test.** That is a gap a referee will
+find: our §8 concludes AddRS overstates in this market, and the obvious question is whether the
+2020 estimator repairs the premise problem we identify. It should be read and, if the equations are
+obtainable, benchmarked alongside AddRS before the AddRS result is presented as a boundary
+condition on "the" daily-OHLC correction.
 
 **Provenance of the AddRS equations.** The 2014 article was not obtained. The operational
 equations implemented in `estimators/range_.py` come from a later open-access paper by the same
@@ -227,10 +246,24 @@ failure to open at the call concentrated among low-volume securities.
 > often fails to clear (10.8% no-match overall), is *consistent with an established finding
 > elsewhere*. **We should therefore not present it as novel**, and §3 says so.
 
-**Indian NSE call auction** — RECORD UNVERIFIED. Secondary sources report that call-auction
-volumes on the NSE are very low and that intraday volatility and volume dynamics were largely
-unaffected by its introduction. Relevant because NIFTY is our cross-market comparator. **Needs a
-proper citation before use.**
+**Agarwalla, Jacob and Pandey (2015)**, "Impact of the introduction of call auction on price
+discovery: evidence from the Indian stock market using high-frequency data", *International Review
+of Financial Analysis* 39, 167–178 — CLAIM VERIFIED. *(This fills the gap an earlier draft of this
+review flagged as needing a proper citation.)* Studying the 2010 reintroduction of the opening call
+auction on the NSE, they find the auctions **attract very little volume**, the intraday pattern of
+volume and volatility in the continuous market is **unchanged**, and **a large fraction of price
+discovery still occurs in the first fifteen minutes of continuous trading** rather than at the call.
+
+> This is the sharpest available comparator for our §9, and it cuts *against* a strong reading of
+> our result. On the NSE — our own cross-market benchmark — the opening auction is largely
+> bypassed. Our NEPSE finding is that the opening return carries 63.6% of close-to-close variance
+> in thin equity. Whether that reflects genuine price discovery at the NEPSE auction, or simply the
+> mechanical fact that a thinly traded security's whole daily move is booked at its one clearing
+> event, is exactly the distinction §9.1 says we cannot identify. Agarwalla et al. show the
+> question is live in a neighbouring market with far better data.
+>
+> Note also that **Joshy Jacob is an author of both this paper and Jacob and Vipul (2008)**, whose
+> finding that range estimators survive moderate illiquidity our equity results agree with.
 
 **Kim and Rhee (1997)**, "Price limit performance: evidence from the Tokyo Stock Exchange",
 *Journal of Finance* — RECORD VERIFIED (volume and pages not yet confirmed). Volatility does not
@@ -336,10 +369,13 @@ Stated as a ledger, so that each claim can be checked against a strand.
    novelty claim.
 3. **MacKinnon and Webb are unverified**, and our cluster sizes (1 to 8, with a singleton) are
    exactly the configuration they study.
-4. **The NSE call-auction result has no proper citation.**
-5. **Kim and Rhee's volume and pages are unconfirmed**, and the price-limit literature is barely
+4. ~~The NSE call-auction result has no proper citation.~~ **CLOSED** — Agarwalla, Jacob and
+   Pandey (2015), *IRFA* 39, 167–178.
+5. **Shaik and Maheswaran (2020) is unread.** A successor to AddRS from the same group that we do
+   not test. This is now the second-most-likely thing a referee raises.
+6. **Kim and Rhee's volume and pages are unconfirmed**, and the price-limit literature is barely
    engaged despite NEPSE operating a ±10% daily limit that we do not model.
-6. **No search was run** on: the volatility-of-volatility literature, bid–ask bounce corrections
+7. **No search was run** on: the volatility-of-volatility literature, bid–ask bounce corrections
    beyond Roll, or frontier-market microstructure outside South Asia.
 
 ---
@@ -350,8 +386,11 @@ Stated as a ledger, so that each claim can be checked against a strand.
 2. **Kim and Rhee (1997)** and one magnet-effect paper — the price-limit mechanism is the most
    plausible explanation for why our censoring model fails to extrapolate (§9.4), and it is
    currently unexamined.
-3. **Kumar and Maheswaran (2014)** full text — the only route to CLAIM status for the estimator
-   the paper's second result depends on.
+3. **Kumar and Maheswaran (2014)** full text, and **Shaik and Maheswaran (2020)** — the first is
+   the only route to CLAIM status for the estimator the paper's second result depends on; the
+   second asks whether a newer estimator from the same group already repairs the premise problem
+   §8 identifies. Testing AddRS and calling it a boundary condition on daily-OHLC corrections is
+   weaker if a 2020 successor exists untested.
 4. **MacKinnon and Webb** — our cluster structure is their subject.
 5. **The NEPSE index-level GARCH studies** — do their results survive the composition problem we
    document? If the index is value-weighted over the same mixed universe, that is a direct and
