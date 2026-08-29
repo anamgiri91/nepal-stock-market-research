@@ -2,7 +2,17 @@
 
 **Sample composition and additive corrections to range-based volatility estimators in a frontier market**
 
-**Draft v0.5 · 2026-08-29 · not for circulation**
+**Anam Giri**
+
+*Draft v0.6 · 29 August 2026 · not for circulation*
+
+**Keywords:** range-based volatility; bias correction; instrument composition; sample
+construction; frontier markets; Nepal Stock Exchange
+
+**JEL classification:** G14 (Information and Market Efficiency); G15 (International Financial
+Markets); C58 (Financial Econometrics); C18 (Methodological Issues: General)
+
+> **Affiliation and corresponding-author details to be completed before submission.**
 
 > **Status.** Exploratory unless a claim is explicitly labelled otherwise. One hypothesis has
 > been evaluated on held-out data; its confirmatory provenance carries a stated qualification
