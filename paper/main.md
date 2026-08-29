@@ -6,7 +6,7 @@
 > been evaluated on held-out data; its confirmatory provenance carries a stated qualification
 > (§10). Every ratio in this paper is labelled **variance-scale** or **SD-scale**, because the
 > two differ by a square root and an earlier draft mixed them across adjacent sections.
-> Section 12 states what is not established.
+> Section 13 states what is not established.
 
 ---
 
@@ -135,7 +135,7 @@ orders may be placed only within **±2% of the previous close**. The engine clea
 volume-maximising price, and if no orders match, the opening price is set equal to the previous
 close. Section 9 shows both rules are visible in the data. The band was widened to ±5% in April
 2026 as part of a bundle of simultaneous changes, which is why we do not treat it as a natural
-experiment (§12).
+experiment (§13).
 
 ---
 
@@ -437,7 +437,7 @@ are dense. We report this rather than omitting it: an index is a diversified por
 range behaves differently from a single security's, so an index-versus-stock comparison is not
 like-for-like. **No security-level cross-market comparison exists in this paper.** Any claim that
 NEPSE equities and NIFTY constituents behave identically would require constituent-level NIFTY
-data with trade counts, which we do not hold (§12).
+data with trade counts, which we do not hold (§13).
 
 ---
 
@@ -835,7 +835,38 @@ not as a confirmed hypothesis.
 
 ---
 
-## 11. What this paper contributes
+## 11. Robustness
+
+The headline result is a contrast between an equity definition and the pooled universe, so the
+obvious objection is that it depends on how we drew the line. It does not. Every reasonable
+alternative definition sits far from the pooled row.
+
+| equity definition | securities | stock-days | median trades/day | `P(H = L)` |
+|---|---|---|---|---|
+| baseline: ticker convention validated against par value | 291 | 143,149 | 165 | **0.28%** |
+| price-only, no ticker information used | 346 | 131,923 | 167 | 1.15% |
+| ticker-only, no par-value validation | 341 | 163,914 | 135 | 0.87% |
+| baseline, excluding NLO, BNL and UNL | 288 | 142,236 | 166 | 0.11% |
+| baseline **plus** restricted promoter shares | 385 | 146,971 | 160 | 1.06% |
+| **pooled universe, for contrast** | **520** | **184,390** | **111** | **5.70%** |
+
+The worst case for us is the price-only classifier at 1.15%, still five times below the pooled rate
+and twenty times below the thinnest decile's. Dropping the three securities that dominate the
+cross-sectional variance of `P(H = L)` — NLO, BNL and UNL, whose median closes run to ₨46,888
+against negligible free float — moves the figure the other way, to 0.11%. Adding promoter shares
+back in, which is defensible since they are equity in the same firms held under transfer
+restrictions, gives 1.06%.
+
+**The finding is a property of the instrument mix, not of our classification rule.**
+
+Robustness of the other results is reported where they appear rather than collected here: the
+support trims, leave-one-year-out, split samples, duplicate-resolution invariance and
+label-permutation placebo for §10; the tolerance ladder for §8.3; and the price-limit sensitivity
+for §7.1.
+
+---
+
+## 12. What this paper contributes
 
 Stated once, plainly, so it can be held against the evidence.
 
@@ -881,7 +912,7 @@ building a classifier — not a discovery that filtering matters.
 
 ---
 
-## 12. What is not established
+## 13. What is not established
 
 - **A causal reading of the closing-rule change.** The treated indicators fall ~81% while the
   placebo indicators move under 5%, and none of 193 placebo windows reproduces the effect
