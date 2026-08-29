@@ -50,3 +50,6 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# manuscript build output
+paper/build/
