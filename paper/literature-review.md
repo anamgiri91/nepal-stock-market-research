@@ -242,8 +242,10 @@ high–low ratios over one- and two-day intervals, exploiting that the variance 
 high–low ratio scales with the interval while the spread component does not. Critically for us,
 they address the degenerate case explicitly: with very infrequent trading there are sometimes no
 transactions, or only one trade in a day, giving **identical high and low prices and zero range**.
-Their prescription is a rule, not an omission — where the trade price falls inside the previous
-day's range, the previous day's high and low are carried forward.
+Their prescription is a rule, not an omission: the previous day's high, low and close are retained,
+**with a further adjustment specific to zero-range days**. So the case is not merely acknowledged in
+passing — it has dedicated handling, which makes our withdrawn claim clearly wrong rather than
+arguably so.
 
 **Ardia, Guidotti and Kroencke (2024)**, "Efficient estimation of bid–ask spreads from open, high,
 low, and close prices", *Journal of Financial Economics* 161, 103916,

@@ -217,7 +217,8 @@ What we add is narrower and, we think, still worth having.
    trading, and a prescription for handling it are all established in the bid–ask spread
    literature, which works on the same daily high–low data. Corwin and Schultz (2012) note that
    with very infrequent trading there may be one trade or none, giving identical high and low
-   prices, and carry the previous day's extrema forward. Ardia, Guidotti and Kroencke (2024) show
+   prices; they retain the previous day's high, low and close, with a further adjustment specific
+   to zero-range days. Ardia, Guidotti and Kroencke (2024) show
    popular spread estimators are downward biased under infrequent trading and derive estimators
    that account for discrete observation. **An earlier draft of this paper claimed the analogue was
    undocumented; that claim is withdrawn.**
@@ -230,9 +231,17 @@ What we add is narrower and, we think, still worth having.
    cleaning rule requires reconstructing type from ticker convention and validating it against par
    value (§5). A researcher following best practice cannot execute it without building a classifier
    first, and a researcher not looking for the problem has nothing to alert them.
-4. **We quantify what the omission does to estimator diagnostics specifically**, rather than to a
-   liquidity proxy: pooled zero-range 5.70% against 0.28% on ordinary equity, and a thinnest decile
-   that is 94.3% non-equity.
+4. **The filter protects a different conclusion than the one it was designed to protect.** The
+   emerging-market literature applies it to keep non-equity instruments out of a *liquidity
+   measure*. We show the same omission determines whether a researcher concludes that
+   **range-based volatility estimators are viable in the market at all** — a downstream question
+   that literature was not addressing. On the pooled universe the answer is no; on ordinary equity
+   it is yes, and the reversal is not marginal: the thinnest quintile's `RS ÷ Var(x)` moves from
+   0.172 to 1.184, median trading intensity from 111 to 165 trades per day, and Parkinson's
+   zero rate from 5.70% to 0.28%.
+
+That fourth point is what we would defend. It is not that a proxy is noisy; it is that a
+methodological conclusion inverts.
 
 **We propose no correction for zero-range observations**, and the paper should not be read as
 offering one. The contribution is diagnostic.
