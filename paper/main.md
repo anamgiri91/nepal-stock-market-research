@@ -431,6 +431,33 @@ distinctive is not the estimator but the scope: the opening return carries **63.
 close-to-close variance in thin equity against 26.9% in dense equity and 34.3% on NIFTY, offset
 by a strongly negative covariance between the opening and intraday components (−0.897).
 
+### 7.1 The decomposition is sensitive to a censoring mechanism we do not model
+
+NEPSE operates a **daily price limit** — ±10% of the previous close through March 2026, ±15%
+after — separately from the ±2% pre-open band of §9. The two act on different variables. The band
+censors the *opening* price; measured on equity, the daily limit binds the opening return on
+**0.071%** of stock-days before April 2026 and **0.000%** after, because the band is uniformly the
+tighter constraint. The limit instead binds **close-to-close** returns, on 1.24% of equity
+stock-days.
+
+That matters here because `Var(open)/Var(cc)` has the censored variable in its denominator.
+Excluding limit-hit days:
+
+| sample | n | Var(open)/Var(cc) | 2Cov/Var(cc) |
+|---|---|---|---|
+| thin equity, all rows | 71,608 | 0.641 | −0.862 |
+| thin equity, limit-hit rows excluded | 71,071 | **0.742** | −1.179 |
+| dense equity, all rows | 71,250 | 0.291 | −0.365 |
+| dense equity, limit-hit rows excluded | 70,021 | 0.304 | −0.488 |
+
+**1.2% of rows move the thin-equity opening share by 15.8%**, and the direction is informative: the
+limit *deflates* the reported opening share, so the figure in the table above is conservative rather
+than inflated. On 44.6% of limit-hit days the opening return was already pinned at the band, so the
+two mechanisms interact rather than acting independently.
+
+We report the uncensored figure as primary and this as its sensitivity. A full treatment would model
+both constraints jointly, which we have not done.
+
 **We stop short of a comparison with the published figure.** Maheswaran and Kumar's 0.82 is
 estimated on the Nifty index over 1996–2011; our NIFTY sample begins in 2010 and covers roughly
 13% of their window. Our full-sample figure is 0.671 and our 2010–2011 sub-sample gives 0.695,
@@ -780,6 +807,9 @@ not as a confirmed hypothesis.
 - **The published 0.82 comparison is unresolved by data availability**, not by method (§7).
 - **The opening share of variance is bracketed, not identified** (§9.1).
 - **The April 2026 rule change is confounded** and unexploited (§9.4).
+- **The daily price limit is measured but not modelled.** §7.1 shows it moves the thin-equity
+  opening share by 15.8%. A joint treatment of the ±2% band and the ±10% limit is the obvious next
+  step and is not attempted here.
 - **Circuit-breaker censoring of the continuous session is unmodelled.**
 - **2026-07-25's status as a special session is provisional**, pending an exchange notice.
 - **Panel A's 8.05% OHLC violation rate versus panel B's 0.60% is unexplained.**
