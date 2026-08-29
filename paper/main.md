@@ -1,6 +1,6 @@
 # When a Bias Correction Has No Bias to Correct
 
-**Range estimators, instrument composition, and a premise that fails in a frontier market**
+**Range estimators, instrument composition, and a premise the data cannot support**
 
 **Draft v0.5 · 2026-08-29 · not for circulation**
 
@@ -15,8 +15,8 @@
 ## Abstract
 
 Additive bias corrections for range-based volatility estimators are built for a regime in which the
-uncorrected estimator is downward-biased. We show what happens when that premise fails, and that
-establishing whether it fails turns on a sample-construction step the data do not supply.
+uncorrected estimator is downward-biased. We show what happens when no such bias is detectable, and
+that whether it *appears* detectable turns on a sample-construction step the data do not supply.
 
 On ordinary equity from the Nepal Stock Exchange — a market with no listed equity derivatives — the
 additive correction of Kumar and Maheswaran (2014) **overstates at every liquidity level we can
@@ -25,8 +25,11 @@ open-to-close benchmark, while performing as designed on the NIFTY 50 at 1.005. 
 the correction's premise rather than any defect in it, and we state it for the class: **any**
 correction of the form `RS + Δ` with `Δ ≥ 0` has positive expected bias in a regime where
 Rogers–Satchell is already unbiased. In thin NEPSE equity Rogers–Satchell sits at **0.998** against
-a matched benchmark on a variance scale, so the premise is satisfied nowhere. Stating the result
-for the class matters practically: it does not depend on which correction is tested.
+a matched benchmark on a variance scale — so against the benchmark the data support, we find no
+sign of the downward bias the correction exists to remove. That is weaker than saying the premise
+is false, and deliberately so: the latent variance is unobserved and the benchmark is an imperfect
+proxy. Stating the result for the class matters practically: it does not depend on which correction
+is tested.
 
 Whether the premise *appears* satisfied depends on how the sample is built, and that is the paper's
 second result. NEPSE publishes ordinary equity, corporate debentures, closed-end mutual funds and
@@ -530,7 +533,7 @@ scales and not a replication.)*
 
 ---
 
-## 8. AddRS: a correction whose premise does not hold here
+## 8. AddRS: a correction applied where we find no bias for it to correct
 
 The additive bias correction of Kumar and Maheswaran (2014) reduces exactly. With `b = ln(H/O)`,
 `c = ln(L/O)`, `x = ln(C/O)`, `u = 2b − x`, `v = 2c − x`:
@@ -600,8 +603,18 @@ Writing it at the level bias actually lives, and for the general case rather tha
 
 AddRS is one member of that class, with `Δ = ½·x²(I_u + I_v)`, which is non-negative and strictly
 positive whenever an extreme coincides with the open or close on a day with `C ≠ O`. Table 8.1
-shows `RS ÷ OC` at or above 0.98 in every equity quintile, so the premise is not satisfied anywhere
-in this sample and the overshoot follows.
+shows `RS ÷ OC` at or above 0.98 in every equity quintile.
+
+**What that does and does not establish, stated carefully.** AddRS targets a specific bias: the
+downward bias of Rogers–Satchell arising from the random-walk effect, i.e. `E[RS] < σ²` where `σ²`
+is the latent variance. We do not observe `σ²`. What we observe is the ratio of RS to a matched
+open-to-close benchmark — mean squared open-to-close returns — which is a conditionally unbiased
+but **imperfect** proxy, and Patton (2011) shows imperfect proxies distort exactly this kind of
+comparison. So the correct statement is not that the correction's premise is false in this market.
+It is that **we find no evidence of the downward bias the correction targets, measured against the
+only benchmark the data support**, and that a correction which is non-negative by construction will
+overshoot relative to that benchmark whenever no such bias is present in it. Distinguishing the
+theoretical bias from what a proxy can reveal is a limitation of the test, not a result of it.
 
 **The argument does not depend on which correction is tested.** That matters for a reasonable
 objection to this section — that Shaik and Maheswaran (2020) propose a further additive estimator
@@ -845,6 +858,13 @@ whose equations we could not obtain. AddRS is the instance we can measure: it ov
 to 1.323 across equity liquidity quintiles here, while landing on 1.005 for the NIFTY 50, and
 Rogers–Satchell sits at 0.998 against a matched benchmark in thin equity.
 
+**The limit of that test.** The correction targets `E[RS] < σ²`, and `σ²` is unobserved. Our
+benchmark is mean squared open-to-close returns — conditionally unbiased but imperfect, and Patton
+(2011) shows imperfect proxies distort precisely this comparison. So we report that **no downward
+bias is detectable against the benchmark the data support**, not that the correction's premise is
+false. Separating the theoretical bias from what a proxy can reveal would require a validation
+target this market does not offer, and that is a limitation of the test rather than a finding.
+
 **Why the sample decides whether that is visible.** When a mixed-security price feed is analysed
 without security-type classification, zero-range observations concentrate heavily in non-equity
 instruments. The pooled sample then displays exactly the downward bias an additive correction
@@ -918,8 +938,16 @@ building a classifier — not a discovery that filtering matters.
 - **No security-level cross-market comparison exists.** Every cross-market statement rests on
   index-versus-index or index-versus-stock contrasts. Constituent-level NIFTY data with trade
   counts would be required.
-- **ABC is not implemented** and we make no claim about it. Nor is Shaik and Maheswaran's (2020)
-  successor estimator, so §8 bounds AddRS and not the wider family of daily-OHLC corrections.
+- **ABC is not implemented** and we make no claim about it.
+- **Shaik and Maheswaran's (2020) successor estimator is not benchmarked.** Its equations could not
+  be obtained, and we do not implement estimators from secondary descriptions. §8.2's proposition
+  covers it *conditionally* — if its correction term is non-negative, the argument applies — but
+  **whether it satisfies that condition is unverified**, and no empirical comparison against it is
+  offered. A referee is entitled to ask for one.
+- **The premise test rests on an imperfect proxy.** AddRS targets `E[RS] < σ²`; we observe RS
+  against mean squared open-to-close returns. Patton (2011) shows imperfect proxies distort such
+  comparisons. We report no detectable downward bias against the available benchmark, which is a
+  weaker statement than the premise being false, and the gap between them is not closed here.
 - **The AddRS derivation is unverified from the primary source** (§8).
 - **The published 0.82 comparison is unresolved by data availability**, not by method (§7).
 - **The opening share of variance is bracketed, not identified** (§9).
