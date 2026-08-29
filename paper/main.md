@@ -131,44 +131,81 @@ experiment (§11).
 
 ## 3. Related literature, and what is not claimed here
 
-**Finite-sampling bias is established, and so is the discrete-extrema problem.** Rogers and
-Satchell (1991) identify it in the paper introducing their estimator and offer a correction.
-Martens and van Dijk (2007) state that infrequent trading biases the realized range downward and
-propose a scaling correction; Christensen and Podolskij (2007) derive asymptotics; Christensen,
-Podolskij and Vetter (2009) bias-correct the realized range under microstructure noise. Rogers,
-Satchell and Yoon (1994) use a proxy for the number of transactions to correct discretisation
-bias directly. *(Whether the 1994 transaction-proxy correction is the same construction as the
-1991 paper's is not established here; we have read the 1991 abstract, not its Section 3.)*
+Four strands bound this paper. The fourth is the one that constrains our contribution most, and
+we take it up last rather than burying it.
 
-**And bias is correctable from daily data.** Maheswaran and Kumar (2013) propose an **empirical**
-automatic bias correction (ABC) for extreme-value volatility estimators that requires no
-knowledge of `N`, the number of steps. Kumar and Maheswaran (2014) separately introduce the
-**AddRS** estimator, derived from a reflection principle for a random walk with symmetric
-double-exponential increments, and show it is exactly unbiased **under that model**. These are
-two different procedures from two different papers, and we keep them apart: ABC is empirical and
-approximate; AddRS is theoretical and exact under its own maintained model. We implement AddRS
-and benchmark it. **We do not implement ABC and make no claim about its performance.**
+**Finite-sampling bias, and the discrete-extrema problem.** Rogers and Satchell (1991) identify
+the problem in the paper introducing their estimator — approximating the extrema of a drifting
+Brownian motion by those of a random walk "introduces error, often quite a serious error" — and
+offer a correction there. Martens and van Dijk (2007) propose a scaling correction for the
+downward bias of the realized range under infrequent trading; Christensen and Podolskij (2007)
+derive asymptotics; Christensen, Podolskij and Vetter (2009) bias-correct the realized range
+under microstructure noise. Rogers, Satchell and Yoon (1994) use a proxy for the number of
+transactions to correct discretisation bias directly. *(Whether the 1994 transaction-proxy
+correction is the same construction as the 1991 paper's is not established here: we have read the
+1991 abstract, not its derivation.)*
 
-**The variance ratio.** The variance-ratio statistic built from extreme prices is due to
-Maheswaran, Balasubramanian and Yoonus (2011). Maheswaran and Kumar (2013) report a value of
-0.82 for the Rogers–Satchell estimator against the "usual" close-to-close estimator on the Nifty
-index over 1996–2011, and attribute the shortfall to the random-walk effect.
+**Correction from daily data alone.** Maheswaran and Kumar (2013) propose an **empirical**
+automatic bias correction (ABC) for extreme-value estimators requiring no knowledge of `N`, the
+number of steps. Kumar and Maheswaran (2014) separately introduce **AddRS**, derived from a
+reflection principle for a random walk with symmetric double-exponential increments, and show it
+exactly unbiased **under that model**. These are two procedures from two papers and we keep them
+apart: ABC is empirical and approximate, AddRS theoretical and exact under its own maintained
+model. We implement and benchmark AddRS. **We do not implement ABC and make no claim about it.**
+The variance-ratio statistic built from extreme prices is due to Maheswaran, Balasubramanian and
+Yoonus (2011); Maheswaran and Kumar (2013) report a value of 0.82 for Rogers–Satchell against the
+"usual" close-to-close estimator on the Nifty index over 1996–2011.
 
-**Range estimators survive moderate illiquidity.** Jacob and Vipul (2008), benchmarking against
-two-scale realized volatility, report that daily range estimators are not downwardly biased under
-negative autocorrelation and low liquidity, identifying drift as the main source of Parkinson's
-problems. *(We cite this from the secondary literature; the primary text is not verified.)*
+**Range estimators may survive moderate illiquidity.** Jacob and Vipul (2008), benchmarking
+against two-scale realized volatility, report that daily range estimators are *"not downwardly
+biased in the presence of negative autocorrelation and low liquidity, as generally suspected"*,
+and identify **drift** as the major cause of Parkinson's poor performance. Our equity results
+agree with theirs, in a market considerably thinner than the one they study.
 
-**Opening call auctions are a studied object.** Work on several exchanges finds that opening-call
-failures concentrate among low-volume stocks and that effectiveness depends on institutional
-design. Our contribution is not that thin securities concentrate repricing at the open.
+**Opening call auctions.** Ibikunle (2015) finds on the London Stock Exchange that the opening
+auction produces highly efficient prices for the highest-volume stocks, while lower-volume stocks
+reach comparable efficiency only after continuous trading begins, with a high rate of failure to
+open at the call among low-volume securities. Work on India's NSE finds call-auction volumes low
+and intraday dynamics largely unaffected by its introduction. Our contribution is **not** that
+thin securities concentrate repricing at the open, which is consistent with that literature.
 
-> **No novelty is claimed for the finite-sampling mechanism, nor for its correction from daily
-> data.** Both are established. What we claim is narrower: that the empirical signature of that
-> mechanism, in a market whose published universe mixes asset classes, is not identified without
-> an instrument filter.
+### 3.1 The constraint on our contribution: composition is a known problem
 
----
+The emerging-market liquidity literature already knows that instrument composition contaminates
+liquidity measurement, and it already knows the fix.
+
+Lesmond, Ogden and Trzcinka's proportion-of-zero-returns proxy, applied across emerging markets by
+Lesmond (2005) and used as the primary liquidity measure by Bekaert, Harvey and Lundblad (2007),
+rests on exactly the statistic our §5 examines: the frequency with which a security's price does
+not move. And the standard cleaning protocol in that literature restricts samples to **ordinary
+common shares**, precisely to keep non-equity instruments from driving the measure.
+
+**So "filter to ordinary equity" is not our idea, and we claim no novelty for it.** A referee who
+says this is standard practice is right.
+
+What we add is narrower and, we think, still worth having.
+
+1. **The range-estimator analogue has not, to our knowledge, been documented.** The zero-*return*
+   rate is a known-contaminated liquidity proxy. `P(H = L)` — the zero-*range* rate — is its
+   range-estimator counterpart, and it inherits the same contamination while biting harder: a
+   range estimator with `H = L` does not become noisy, it returns exactly zero and stops being a
+   volatility proxy at all. In our data the pooled zero-range rate is 5.70% against 0.28% on
+   ordinary equity, a factor of twenty generated entirely by composition.
+2. **The filter is not mechanically available here.** In the markets where this protocol was
+   developed, security type comes with the data. NEPSE publishes no instrument-type field, so
+   applying the standard cleaning rule requires reconstructing type from ticker convention and
+   validating it against par value (§5). A researcher following best practice cannot execute it
+   without building a classifier first, and a researcher not looking for the problem has nothing
+   to alert them.
+3. **We quantify what the omission does to estimator diagnostics specifically**, rather than to a
+   liquidity proxy, and show that the entire apparent breakdown of the range family in this market
+   is attributable to it.
+
+> **No novelty is claimed for the finite-sampling mechanism, for its correction from daily data,
+> or for the practice of restricting samples to ordinary equity.** What we claim is that the
+> empirical signature of estimator failure, in a market whose published universe mixes asset
+> classes and labels none of them, is not identified without that restriction — and that the
+> resulting artifact is large, specific, and reproducible.
 
 ## 4. Data
 
@@ -292,8 +329,16 @@ study that downloads a frontier exchange's daily files, sorts on turnover or tra
 reports that range estimators degrade in the thinnest bucket will produce our §5.1 table. It is
 reproducible, statistically strong, and about corporate debentures.
 
-We do not claim this contaminates any particular published paper. We claim it is available to,
-and invisible in, the standard workflow, and that the check costs one classification step.
+As §3.1 sets out, the emerging-market liquidity literature already restricts samples to ordinary
+common shares for exactly this reason, so the remedy is not new. Two things make the omission
+easy here anyway. The filter is **not mechanically available**: with no instrument-type field
+published, applying the standard rule means building and validating a classifier first. And the
+diagnostic that would reveal the problem is the one the composition corrupts — a researcher who
+checks whether the thin bucket looks thin will find that it does.
+
+We do not claim this contaminates any particular published paper. We claim the artifact is large,
+specific and reproducible, that it is invisible in a workflow that follows the data as published,
+and that the check costs one classification step.
 
 ---
 
@@ -707,18 +752,30 @@ not as a confirmed hypothesis.
 - **Circuit-breaker censoring of the continuous session is unmodelled.**
 - **2026-07-25's status as a special session is provisional**, pending an exchange notice.
 - **Panel A's 8.05% OHLC violation rate versus panel B's 0.60% is unexplained.**
-- **Several references are unverified against primary sources**, including a direct quotation
-  attributed to Jacob and Vipul (2008) and the opening-auction literature in §3.
+- **Seven references remain unverified against primary sources**, marked as such in the
+  bibliography. The quotation attributed to Jacob and Vipul (2008) and the opening-auction
+  literature in §3 were verified during this revision; Christensen and Podolskij (2007),
+  Christensen, Podolskij and Vetter (2009), Martens and van Dijk (2007), Rogers, Satchell and Yoon
+  (1994), Corsi (2009) and Patton (2011) were not, and the Parkinson and Garman–Klass equations
+  have been checked only against secondary sources.
 
 ---
 
 ## References
 
-*Verification status is tracked in the project's audit record. Entries marked (unverified) have
-had metadata confirmed but their equations or quoted claims not read from the primary source.*
+*Entries marked **(verified)** have had their bibliographic record confirmed against a
+publisher or RePEc listing during this revision, and where a claim is attributed to them in the
+text, that claim checked against the source's own abstract or summary. Entries marked
+**(unverified)** have not.*
+
+Bekaert, G., Harvey, C. R., and Lundblad, C. (2007). Liquidity and expected returns: lessons from
+emerging markets. *Review of Financial Studies* 20(6), 1783–1831. **(verified)** — primary
+liquidity measure is a transformation of the proportion of zero daily firm returns.
 
 Cameron, A. C., Gelbach, J. B., and Miller, D. L. (2008). Bootstrap-based improvements for
 inference with clustered errors. *Review of Economics and Statistics* 90(3), 414–427.
+**(verified)** — asymptotic cluster-robust tests over-reject with few (roughly five to thirty)
+clusters; wild cluster bootstrap-t provides the refinement.
 
 Christensen, K., and Podolskij, M. (2007). Realized range-based estimation of integrated
 variance. *(unverified)*
@@ -729,37 +786,53 @@ variance in the presence of market microstructure noise. *(unverified)*
 Corsi, F. (2009). A simple approximate long-memory model of realized volatility. *(unverified)*
 
 Garman, M. B., and Klass, M. J. (1980). On the estimation of security price volatilities from
-historical data. *Journal of Business* 53(1), 67–78. *(equation unverified)*
+historical data. *Journal of Business* 53(1), 67–78. *(metadata verified; equation unverified —
+note that two distinct forms circulate, and we implement the simplified one)*
+
+Ibikunle, G. (2015). Opening and closing price efficiency: do financial markets need the call
+auction? *Journal of International Financial Markets, Institutions and Money* 34, 208–227.
+DOI 10.1016/j.intfin.2014.11.014. **(verified)**
 
 Jacob, J., and Vipul (2008). Estimation and forecasting of stock volatility with range-based
-estimators. *(unverified — including the quotation in §3)*
+estimators. *Journal of Futures Markets* 28(6), 561–581. DOI 10.1002/fut.20321. **(verified —
+including the quotation in §3, and the attribution of Parkinson's poor performance to drift)*
 
 Kumar, D., and Maheswaran, S. (2014). A reflection principle for a random walk with implications
 for volatility estimation using extreme values of asset prices. *Economic Modelling* 38, 33–44.
-DOI 10.1016/j.econmod.2013.11.045. *(derivation unverified; operational equations taken from a
-later author reproduction)*
+DOI 10.1016/j.econmod.2013.11.045. **(metadata verified; derivation and unbiasedness proof
+unverified — operational equations taken from a later author reproduction and checked against it)*
+
+Lesmond, D. A. (2005). Liquidity of emerging markets. *Journal of Financial Economics* 77(2),
+411–452. **(verified)**
 
 Maheswaran, S., Balasubramanian, G., and Yoonus, C. A. (2011). Post-colonial finance. *Journal of
-Emerging Market Finance* 10(2), 175–196. DOI 10.1177/097265271101000202.
+Emerging Market Finance* 10(2), 175–196. DOI 10.1177/097265271101000202. **(verified)** — source
+of the extreme-value variance ratio.
 
 Maheswaran, S., and Kumar, D. (2013). An automatic bias correction procedure for volatility
 estimation using extreme values of asset prices. *Economic Modelling* 33, 701–712.
-DOI 10.1016/j.econmod.2013.05.019.
+DOI 10.1016/j.econmod.2013.05.019. **(verified)** — ABC is described by its authors as an
+empirical procedure requiring no knowledge of `N`.
 
 Martens, M., and van Dijk, D. (2007). Measuring volatility with the realized range.
 *(unverified)*
 
 Parkinson, M. (1980). The extreme value method for estimating the variance of the rate of return.
-*Journal of Business* 53(1), 61–65. *(equation unverified)*
+*Journal of Business* 53(1), 61–65. *(metadata verified; equation unverified)*
 
 Patton, A. J. (2011). Volatility forecast comparison using imperfect volatility proxies.
 *(unverified)*
 
 Rogers, L. C. G., and Satchell, S. E. (1991). Estimating variance from high, low and closing
 prices. *Annals of Applied Probability* 1(4), 504–512. DOI 10.1214/aoap/1177005835.
+**(verified)** — abstract read in full: unbiased whatever the drift under continuously observed
+Brownian motion, and the discrete-extrema error and a correction for it are stated there.
 
 Rogers, L. C. G., Satchell, S. E., and Yoon, Y. (1994). Estimating the volatility of stock prices:
 a comparison of methods that use high and low prices. *(unverified)*
 
+Vipul, and Jacob, J. (2007). Forecasting performance of extreme-value volatility estimators.
+*Journal of Futures Markets*. DOI 10.1002/fut.20283. *(metadata verified)*
+
 Yang, D., and Zhang, Q. (2000). Drift-independent volatility estimation based on high, low, open
-and close prices. *Journal of Business*. *(equation unverified)*
+and close prices. *Journal of Business*. *(metadata verified; equation unverified)*
