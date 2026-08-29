@@ -172,8 +172,13 @@ are estimated from the time series of daily returns alone; the feature that iden
 Zero returns occur when transaction costs exceed the information value to the informed trader.
 
 **Lesmond (2005)**, "Liquidity of emerging markets", *Journal of Financial Economics* 77(2),
-411–452 — RECORD VERIFIED. Applies percent-cost and cost-per-volume proxies across 23 emerging
-markets against average daily spreads.
+411–452 — RECORD VERIFIED; the market count CLAIM VERIFIED. **The two figures in circulation are
+both correct and describe different things**, which is worth recording because a careless citation
+picks one and implies the other is wrong. The full sample in which liquidity estimators are analysed
+is **31 emerging markets**. The model-selection and regression tests, which require bid–ask spread
+data, run on the **23** of those markets where spreads are available — and the Stoll-variable
+comparison on **10** of those 23. Cite 31 for the study's coverage, 23 for the spread-validated
+results.
 
 **Bekaert, Harvey and Lundblad (2007)**, "Liquidity and expected returns: lessons from emerging
 markets", *Review of Financial Studies* 20(6), 1783–1831 — CLAIM VERIFIED. **The primary liquidity
