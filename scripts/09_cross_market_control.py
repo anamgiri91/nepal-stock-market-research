@@ -8,7 +8,7 @@ The identical estimator code is run on three regimes:
 
     NIFTY 50      dense, clean, liquid, has a listed implied-volatility index
     NEPSE index   moderate: aggregates every listed security
-    NEPSE stocks  thin, split by published daily trade count
+    NEPSE equity  thin, split by published daily trade count
 
 Under GBM with a continuously observed path, E[Parkinson] = E[(ln C/O)^2] = intraday
 variance, so their ratio is 1. Departures from 1 measure the net friction. If the ratio
@@ -81,10 +81,23 @@ rows = [{"regime":"NIFTY 50 (dense, liquid)", "trades":np.nan, **fingerprint(nif
         {"regime":"NEPSE index (aggregate)",  "trades":np.nan, **fingerprint(nepse_idx)}]
 panel["b"] = pd.qcut(panel.n_trades, 6, labels=False, duplicates="drop")
 for b, g in panel.groupby("b"):
-    rows.append({"regime":f"NEPSE stocks · ~{g.n_trades.median():.0f} trades/day",
+    rows.append({"regime":f"NEPSE equity · ~{g.n_trades.median():.0f} trades/day",
                  "trades":g.n_trades.median(), **fingerprint(g)})
 fp = pd.DataFrame(rows)
 fp.to_csv(TAB/"table14_cross_market_fingerprint.csv", index=False)
+
+# The pooled-universe comparison §6 draws in one sentence. Emitted to its own artifact rather
+# than appended to table14, so neither the figure nor the manuscript table changes shape.
+# It had been a prose-only number and did not reproduce (A-069).
+pooled = load_sample(ROOT, "full")
+pooled["b"] = pd.qcut(pooled.n_trades, 6, labels=False, duplicates="drop")
+thin = pooled[pooled.b == pooled.b.min()]
+prow = {"universe": "pooled (every instrument type)", "buckets": 6,
+        "median_trades": thin.n_trades.median(), **fingerprint(thin)}
+pd.DataFrame([prow]).to_csv(TAB/"table30_pooled_thin_comparison.csv", index=False)
+print(f"\nPooled-universe thinnest bucket (§6 comparison): "
+      f"{prow['median_trades']:.0f} trades/day, Parkinson/OC {prow['Parkinson_sd_ratio']:.3f}, "
+      f"zero-range {prow['zero_range_pct']:.2f}%")
 print("Cross-market estimator fingerprint  (1.000 = no net friction)\n" + "="*100)
 print(fp.to_string(index=False, float_format=lambda x: f"{x:,.3f}"))
 
@@ -118,16 +131,20 @@ ax.axhline(1.0, color=ps.INK_MUTED, lw=1.0)
 for e in ["Parkinson","Garman-Klass","Rogers-Satchell"]:   # style keys are plain names
     c, ls, mk = ps.STYLE[e]
     ax.plot(sub.trades, sub[f"{e}_sd_ratio"], color=c, ls=ls, marker=mk, ms=6,
-            markeredgecolor=ps.SURFACE, markeredgewidth=1.0, label=f"{e} (NEPSE stocks)")
+            markeredgecolor=ps.SURFACE, markeredgewidth=1.0, label=f"{e} (NEPSE equity)")
 for lbl, colr, mark in [("NIFTY 50 (dense, liquid)", ps.SERIES["green"], "*"),
                         ("NEPSE index (aggregate)",  ps.SERIES["violet"], "P")]:
     v = fp.loc[fp.regime == lbl, "Parkinson_sd_ratio"].iloc[0]
     ax.axhline(v, color=colr, ls=":", lw=1.4)
-    ax.annotate(f"{lbl.split(' (')[0]}: {v:.3f}", (sub.trades.max(), v),
-                textcoords="offset points", xytext=(-4, 5), ha="right",
-                fontsize=7.5, color=colr, fontweight="bold")
-ax.set_xscale("log"); ps.plain_log_axis(ax, "x"); ax.legend(fontsize=7.2, loc="lower right")
-ps.finish(ax, "A. The bias tracks trading intensity, not the market", None,
+    ax.annotate(f"{lbl.split(' (')[0]}: {v:.3f}", (sub.trades.min(), v),
+                textcoords="offset points", xytext=(2, 4), ha="left",
+                fontsize=7.5, color=colr, fontweight="bold",
+                bbox=dict(fc=ps.SURFACE, ec="none", pad=1.2))
+ax.set_xscale("log"); ps.plain_log_axis(ax, "x")
+ax.set_xticks([30, 100, 300])   # a lone "100" left the decade axis unreadable
+ax.legend(fontsize=7.2, loc="lower right", frameon=True, facecolor=ps.SURFACE,
+          edgecolor="none", framealpha=0.95)
+ps.finish(ax, "A. Within NEPSE equity the ratio stays near one, and is not monotone", None,
           "Median trades per day (log)", "Range estimator ÷ open-to-close")
 
 ax = axes[1]
@@ -136,9 +153,9 @@ ax.plot(mm.date, mm.pk_21, color=ps.SERIES["orange"], lw=0.9, label="Parkinson, 
 ax.legend(fontsize=7.5)
 ps.finish(ax, "B. On a liquid market the range estimator tracks implied vol", None,
           None, "Annualized volatility (%)")
-ps.header(fig, "Figure 12.  A dense, liquid market shows no bias — using identical code",
-          "If the estimators were broken, or the pipeline were, NIFTY 50 would fail too. It does not. "
-          "The failure is a\nproperty of thin trading, which is the paper's claim.", top=0.83)
+ps.header(fig, "The same estimator code across three regimes",
+          "If the estimators or the pipeline were broken, NIFTY 50 would fail too. It does not.\n"
+          "NEPSE equity stays close to one at every intensity we can measure.", top=0.83)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig12_cross_market.{e}")
 plt.close(fig)
 print(f"\nwrote fig12_cross_market.png")
