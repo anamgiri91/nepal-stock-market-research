@@ -1,0 +1,375 @@
+# Manuscript table registry — declarative provenance for every table in paper/main.md
+#
+# Checked mechanically by `paper/audit_tables.py`, which FAILS on any of:
+#   1. a table in the manuscript that is absent from this registry
+#   2. a registered producer that does not exist
+#   3. a registered output that is not present
+#   4. an output older than its producer (stale artifact)
+#   5. an output the producer does not actually write (no static link in its source)
+#   6. status D without a remedy class and an issue id
+#   7. status B without a documented transformation
+#   8. a manually assembled table without a justification
+#
+# The checker resolves producers FROM THIS FILE ONLY. It never globs `scripts/[0-9]*.py`,
+# because `run_pipeline.sh` discovers work by that glob and an audit sharing it would inherit
+# exactly the blind spot that let an unregistered table survive.
+#
+# STATUS
+#   A  executable producer + persisted output + values reproduced
+#   B  executable computation, but the output needs a documented transformation
+#      (or is printed rather than persisted)
+#   C  persisted artifact exists but producer provenance is incomplete
+#   D  no executable provenance, or a demonstrated discrepancy
+#   N  outside the taxonomy: the table carries no computed statistic
+#
+# REMEDY CLASS (required for D) — these have different fixes, and conflating them is the trap
+#   bad-number         the value is wrong
+#   stale-artifact     the artifact drifted from the code that makes it
+#   lost-producer      a legitimate historical result whose generating code is gone
+#   assembly-error     the manuscript table was assembled from more than one run
+#   never-executable   the definition was never expressed as runnable code
+
+[meta]
+version = 1
+manuscript = "paper/main.md"
+audited = "2026-08-29"
+evidence = "private/audit/TABLE-PROVENANCE-AUDIT.md"
+status_note = "Science freeze suspended for provenance repair; no scientific changes authorized."
+
+# ─────────────────────────────────────────────────────────────────── §2
+[[table]]
+id = "T1"
+section = "2"
+title = "Trading-calendar staleness by weekday"
+producer = "none"
+output = "none"
+sample = "pre-detection panel, staleness = share of a date's cross-section whose close repeats the prior dated file, split at 2026-04-20"
+status = "D"
+remedy_class = "never-executable"
+issue = "A-061"
+note = """The figures live in the module docstring of src/nepsevol/trading_calendar/__init__.py, \
+presented as evidence from the panel. Nothing recomputes them. Independent recomputation from \
+panel_trades.parquet reproduces the Mon-Thu ranges the manuscript prints (0.125-0.197 / \
+0.037-0.103) but not the individual Sunday, Friday and Saturday values. The author's staleness \
+definition is not written down in executable form, so this is undefined rather than shown wrong."""
+
+# ─────────────────────────────────────────────────────────────────── §4
+[[table]]
+id = "T2"
+section = "4"
+title = "Datasets, spans and units"
+producer = "none"
+output = "none"
+sample = "n/a"
+status = "N"
+note = "Descriptive inventory of sources; carries no computed statistic."
+
+# ─────────────────────────────────────────────────────────────────── §5
+[[table]]
+id = "T3"
+section = "5.1"
+title = "Pooled-universe liquidity quintiles"
+producer = "scripts/22_universe_composition.py"
+output = "output/tables/table27_universe_composition.csv"
+sample = "full universe (520 securities); securities bucketed into quintiles by their median n_trades; rows with universe=full"
+status = "A"
+verified = "2026-08-29: every cell to displayed precision"
+
+[[table]]
+id = "T4"
+section = "5.2"
+title = "Instrument composition of the pooled quintiles"
+producer = "scripts/22_universe_composition.py"
+output = "printed"
+sample = "full universe; crosstab of quintile against sec_type, one row per security"
+status = "B"
+transformation = """The producer computes the crosstab (`comp`) and prints it but never persists \
+it. The manuscript's non-equity column is derived from it: Q3 = (0+19+4)/103 = 22.3%, \
+Q5 = (0+1+0)/103 = 1.0%. Re-derived and confirmed 2026-08-29."""
+verified = "2026-08-29: counts against producer stdout, non-equity column re-derived"
+
+[[table]]
+id = "T5"
+section = "5.3"
+title = "Ordinary-equity liquidity quintiles"
+producer = "scripts/22_universe_composition.py"
+output = "output/tables/table27_universe_composition.csv"
+sample = "equity sample (291 securities); securities bucketed by median n_trades; rows with universe=equity"
+status = "A"
+verified = "2026-08-29: every cell to displayed precision"
+
+# ─────────────────────────────────────────────────────────────────── §6
+[[table]]
+id = "T6"
+section = "6"
+title = "Cross-market estimator fingerprint"
+producer = "scripts/09_cross_market_control.py"
+output = "output/tables/table14_cross_market_fingerprint.csv"
+secondary_output = "output/tables/table30_pooled_thin_comparison.csv"
+secondary_producer = "scripts/09_cross_market_control.py"
+sample = "equity sample cut into SIX stock-day buckets by pd.qcut(n_trades, 6), plus NIFTY 50 and the NEPSE index; the pooled-universe comparison sentence uses the same six-bucket cut on the full universe"
+status = "A"
+verified = """2026-08-29: repaired from D (A-057). No registered bucket count exists in any PAP or \
+decision, and PAP-v4 places the cross-market control in the exploratory phase with no confirmatory \
+weight, so the producer IS the specification. The manuscript now prints all six equity buckets the \
+producer emits, with its labels: 33/78/131/208/351/789. The previously omitted 351 bucket \
+(Parkinson/OC = 1.000) sits smoothly inside the declining sequence 1.058, 1.045, 1.028, 1.000, \
+0.972, so restoring it does not disturb the section's 'close to one and not monotone' reading. \
+The pooled comparison sentence, previously prose-only and not reproducible (0.792 / 36.05%), now \
+has a producer and reads 0.737 / 33.43% (A-069)."""
+
+# ─────────────────────────────────────────────────────────────────── §7
+[[table]]
+id = "T7"
+section = "7"
+title = "Benchmark scope and the variance decomposition"
+producer = "scripts/12_benchmark_diagnosis.py"
+output = "output/tables/table18_benchmark_diagnosis.csv"
+sample = "equity sample split dense/thin, plus NIFTY 50 and the NEPSE index; all ratios variance-scale"
+status = "A"
+verified = "2026-08-29: every cell including all four components-sum = 1.0000"
+
+[[table]]
+id = "T8"
+section = "7.1"
+title = "Decomposition excluding limit-hit days"
+producer = "none"
+output = "none"
+sample = "UNDOCUMENTED — a third definition of thin equity (n = 71,608) distinct from table18's (n = 24,344)"
+status = "D"
+remedy_class = "never-executable"
+issue = "A-060"
+note = """n = 71,608 / 71,071 / 71,250 / 70,021 with shares 0.641 / 0.742 / 0.291 / 0.304 are \
+emitted by no script. 03_descriptive.py is the only file touching limit flags and produces no \
+such table. The section does not state which thin-equity definition it uses."""
+
+# ─────────────────────────────────────────────────────────────────── §8
+[[table]]
+id = "T9"
+section = "8.1"
+title = "AddRS against a matched benchmark, by liquidity"
+producer = "scripts/19_addrs_premise.py"
+output = "output/tables/table25_1_addrs_premise.csv"
+secondary_producer = "scripts/17_addrs_benchmark.py"
+secondary_output = "output/tables/table23_addrs_benchmark.csv"
+sample = "equity sample, stock-day quintiles by n_trades (medians 37/92/165/297/701), plus NIFTY 50; SD-scale"
+status = "A"
+verified = "2026-08-29: RS/OC and AddRS/OC against table25_1; Parkinson/OC and RS==0 against table23"
+
+[[table]]
+id = "T10"
+section = "8.3"
+title = "Where the correction mass comes from"
+producer = "scripts/23_addrs_mass_decomposition.py"
+output = "output/tables/table28_addrs_mass_decomposition.csv"
+sample = "POOLED universe at stock-day level, quintiles by n_trades (medians 5/43/112/228/590) — not the equity sample of section 8.1"
+status = "A"
+verified = "2026-08-29: recomputed two independent ways; factorisation identity asserted in the producer (closes to 5.6e-17)"
+note = "Was D (A-053): the table had no producer and its Q2 row was ~30% wrong. Producer written 2026-08-29."
+
+[[table]]
+id = "T11"
+section = "8.4"
+title = "A-B-A closing-rule experiment"
+producer = "scripts/18_closing_rule_experiment.py"
+output = "output/tables/table24_closing_rule.csv"
+sample = "equity sample across three closing-rule regimes: A1 last-trade (pre), B VWAP 15-min, A2 last-trade (post)"
+status = "A"
+verified = "2026-08-29: every cell, and the derived 'B vs flanks' column re-derived by identity"
+
+[[table]]
+id = "T12"
+section = "8.5"
+title = "Four distinct failures and what addresses each"
+producer = "none"
+output = "none"
+sample = "n/a"
+status = "N"
+note = "Qualitative mapping of failure modes to remedies; carries no computed statistic."
+
+# ─────────────────────────────────────────────────────────────────── §9
+[[table]]
+id = "T13"
+section = "9"
+title = "Pre-open auction fingerprints"
+producer = "none"
+output = "none"
+sample = "UNKNOWN — seven candidate definitions tested, none reproduces the published values"
+status = "D"
+remedy_class = "never-executable"
+issue = "A-042"
+note = """91.3% / 23.2% / 2.00%,2.02% / 10.8% are emitted by no script and held as aggregates in \
+no CSV. Pooled stock-day gives 89.4 / 20.4 / 10.5; restricted to the pre-2026-04-20 band regime \
+gives 93.1 / 24.0 / 9.1; security-level means give pinned 21.1, no-match 10.7. The published \
+values sit between the pooled and regime-restricted figures and match neither."""
+
+# ─────────────────────────────────────────────────────────────────── §10
+[[table]]
+id = "T14"
+section = "10"
+title = "Held-out evaluation — registered result and post-hoc diagnostics"
+producer = "scripts/11_ho2_confirmatory.py"
+output = "output/tables/table17_ho2_confirmatory.csv"
+sample = "HO-2: panel A restricted to 1995 -> 2024-03-03, buckets = year x decile of N-hat, thin cells N-hat < 30"
+status = "D"
+remedy_class = "never-executable"
+issue = "A-058"
+note = """SPLICE DISCLOSED, TABLE STILL UNREPRODUCIBLE — two separate problems, one resolved.
+
+A-056 (the spliced triple) is resolved by disclosure rather than by changing a number. Section 10 now uses a three-layer structure: the historical record (N = 325,901, beta = +0.0804, t = 6.69) with an explicit statement that no single execution produced it; the consequence for confirmatory status; and the current reconstruction (N = 325,262, beta = +0.0805, t = 6.71) reported AS a reconstruction. The chain is exact and reconciled in scripts/24_duplicate_key_reconciliation.py: 325,901 + 32 - 671 = 325,262 (A-065). Running the current filter chain WITHOUT the duplicate rule reproduces the 1628a08 vintage to the digit, 325,933 / +0.0804 / 6.72 (A-066), which pins the mechanism but does not establish a single historical execution behind the published triple. The classification stays assembly-error in substance; only new historical evidence would change it.
+
+The table remains D for a different reason: its five post-hoc rows (+0.0667, +0.2518, +0.0815, +0.0678) have no generating code anywhere in scripts/ or src/ (A-058). Nothing computes a Mundlak decomposition. Section 10 now says so in the text."""
+
+# ─────────────────────────────────────────────────────────────────── §11
+[[table]]
+id = "T15"
+section = "11"
+title = "Robustness to the equity definition"
+producer = "none"
+output = "none"
+sample = "baseline and pooled rows verify against the live samples; the four alternative classifiers do not exist"
+status = "D"
+remedy_class = "never-executable"
+issue = "A-059"
+note = """src/nepsevol/universe/ exposes only classify, classify_panel and equity_only. There is \
+no price-only classifier, no ticker-only classifier, no NLO/BNL/UNL exclusion and no \
+promoter-inclusive variant. Four of six rows have no producer. The baseline row \
+(291 / 143,149 / 165 / 0.28%) and pooled row (520 / 184,390 / 111 / 5.70%) do verify. A table \
+whose purpose is to demonstrate robustness is itself unreproducible."""
+
+# ─────────────────────────────────────────────────────────────────── §12
+[[table]]
+id = "T16"
+section = "12"
+title = "Pooled universe against ordinary equity"
+producer = "scripts/22_universe_composition.py"
+output = "output/tables/table27_universe_composition.csv"
+sample = "restates values from T3 and T5 side by side"
+status = "A"
+verified = "2026-08-29: all six values trace to T3/T5, both verified"
+
+# ─────────────────────────────────────────────── artifacts with no manuscript table
+# Declared so the reverse check can distinguish 'known orphan' from 'undeclared'.
+[[orphan]]
+output = "output/tables/table13_jensen_constants.csv"
+issue = "A-062"
+note = "Appears in no to_csv call anywhere in the repository. No producer at all. Not cited by the manuscript."
+
+[[orphan]]
+output = "output/tables/table27_two_margins.csv"
+issue = "A-062"
+note = "Produced only by 21_two_margin_liquidity.py, which halts with SUPERSEDED (DD-018). Fossil of a withdrawn result (RETRACTED-IDEAS item 6)."
+
+[[artifact]]
+output = "output/tables/table30_pooled_thin_comparison.csv"
+producer = "scripts/09_cross_market_control.py"
+backs = "the §6 pooled-universe comparison sentence"
+
+[[artifact]]
+output = "output/tables/table29_duplicate_reconciliation.csv"
+producer = "scripts/24_duplicate_key_reconciliation.py"
+backs = "audit artifact for A-056/A-065: the duplicate-key resolution arithmetic. Not a manuscript table."
+
+# ─────────────────────────── generated artifacts that are not manuscript tables
+# Declared so the reverse check can prove every CSV in the replication package has a producer.
+# These back figures or prose. A CSV appearing here that no producer writes is a failure.
+
+[[artifact]]
+output = "output/tables/table10_acf.csv"
+producer = "scripts/08_timeseries_diagnostics.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table11_calendar.csv"
+producer = "scripts/08_timeseries_diagnostics.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table12_garch_viability.csv"
+producer = "scripts/08_timeseries_diagnostics.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table15_vix_anchor.csv"
+producer = "scripts/09_cross_market_control.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table16_ho2_calibration.csv"
+producer = "scripts/10_ho2_calibration.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table19_opening_auction.csv"
+producer = "scripts/13_opening_auction.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table1_descriptives.csv"
+producer = "scripts/03_descriptive.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table20_scaling_transferability.csv"
+producer = "scripts/14_scaling_transferability.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table21_auction_mechanism.csv"
+producer = "scripts/15_auction_mechanism.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table22_censored_open.csv"
+producer = "scripts/16_censored_open.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table25_2_addrs_premise.csv"
+producer = "scripts/19_addrs_premise.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table25_3_addrs_premise.csv"
+producer = "scripts/19_addrs_premise.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table26_multihorizon_vratio.csv"
+producer = "scripts/20_multihorizon_vratio.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table2_frictions.csv"
+producer = "scripts/03_descriptive.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table3_pathologies_by_decile.csv"
+producer = "scripts/03_descriptive.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table4_simulated_bias.csv"
+producer = "scripts/04_bias_curve.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table5_crossover.csv"
+producer = "scripts/04_bias_curve.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table6_observed_vs_predicted.csv"
+producer = "scripts/05_validate_real.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table7_friction_decomposition.csv"
+producer = "scripts/06_friction_decomposition.py"
+backs = "figures and prose; not a manuscript table"
+
+[[artifact]]
+output = "output/tables/table8_stock_diagnostics.csv"
+producer = "scripts/07_microstructure.py"
+backs = "figures and prose; not a manuscript table"

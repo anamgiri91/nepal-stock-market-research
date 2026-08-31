@@ -8,5 +8,6 @@ for s in scripts/[0-9]*.py; do
   echo "── $s"
   "$PY" "$s"
 done
+echo "── table provenance"; "$PY" paper/audit_tables.py
 echo "── tests"; "$PY" -m pytest tests -q
 echo "Pipeline complete. Exhibits in output/."
