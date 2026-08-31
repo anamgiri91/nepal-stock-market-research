@@ -91,7 +91,7 @@ for i,(a,b) in enumerate(zip(g.naive*100,g.latent*100)):
 ax.set_xticks(ix); ax.set_xticklabels([f"{r.trades:.0f}\ntrades/day" for _,r in g.iterrows()],fontsize=7.5)
 ax.legend(fontsize=7.5); ax.margins(y=.18)
 ps.finish(ax,"B. Opening volatility, observed vs latent",None,None,"Daily σ of opening return (%)")
-ps.header(fig,"Figure 17.  The pre-open band hides opening volatility, and the censoring point is known exactly",
+ps.header(fig,"The pre-open band hides opening volatility, and the censoring point is known exactly",
           "Two-sided Tobit recovers the latent standard deviation from the interior observations plus the "
           "censored mass.\nValidated to within ~1% at censoring rates up to 74%.",top=0.82)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig17_censored_open.{e}")

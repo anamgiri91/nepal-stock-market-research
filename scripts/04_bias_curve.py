@@ -104,7 +104,7 @@ ax.text(GRID[-1]*0.42, 1.012, "unbiased", fontsize=7.5, color=ps.INK_SOFT, ha="r
 ax.legend(loc="lower right", ncol=1)
 ps.finish(ax, None, None, "Trades per day (log scale)",
           r"Estimated $\sigma$ ÷ true $\sigma$")
-ps.header(fig, "Figure 2.  Range-based estimators collapse where NEPSE actually trades",
+ps.header(fig, "Range-based estimators collapse where NEPSE actually trades",
           f"Simulated GBM, true σ = {TRUE_SIGMA:.0%}/day, {N_DAYS:,} days × {N_REPS} replications per point. "
           "Shaded band is NEPSE's observed trading intensity.", top=0.84)
 for ext in ("png", "pdf"): fig.savefig(FIG / f"fig2_bias_curve.{ext}")
@@ -131,7 +131,7 @@ ax.set_yscale("log"); ps.plain_log_axis(ax, "y")
 ax.legend(loc="upper right")
 ps.finish(ax, None, None, "Trades per day (log scale)",
           r"RMSE of rolling 21-day $\hat{\sigma}$, ÷ true $\sigma$")
-ps.header(fig, "Figure 3.  The efficiency advantage of range estimators reverses below N*",
+ps.header(fig, "The efficiency advantage of range estimators reverses below N*",
           "Lower is better. The textbook 5× efficiency gain of Parkinson holds only in the dense-trading limit.",
           top=0.84)
 for ext in ("png", "pdf"): fig.savefig(FIG / f"fig3_crossover.{ext}")

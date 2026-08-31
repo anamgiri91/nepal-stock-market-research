@@ -59,7 +59,7 @@ for nz,lab,col in [("+ moderate noise","+ noise (σ=0.3%)",ps.SERIES["aqua"]),
 ax.set_xscale("log"); ps.plain_log_axis(ax,"x"); ax.set_ylim(0, 2.0)
 ax.legend(loc="upper left", fontsize=7.5)
 ps.finish(ax, None, None, "Trades per day (log scale)", r"Ratio to true daily $\sigma$")
-ps.header(fig, "Figure 6.  Three frictions, two directions",
+ps.header(fig, "Three frictions, two directions",
           "Undersampling and window truncation bias the range down; noise in the extremes biases it up.\n"
           "The net bias is non-monotonic in liquidity, so no single monotone correction can work.", top=0.80)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig6_decomposition.{e}")

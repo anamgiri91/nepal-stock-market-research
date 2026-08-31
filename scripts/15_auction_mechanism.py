@@ -128,7 +128,7 @@ for _,r in g.iterrows():
                 xytext=(6,-11),fontsize=7,color=ps.INK_MUTE if hasattr(ps,'INK_MUTE') else ps.INK_SOFT)
 ps.finish(ax,"B. Quintile medians — note the axis range",None,
           "Median share realized at the open","Median RS ÷ open-to-close")
-ps.header(fig,"Figure 16.  Auction concentration matters statistically, and barely at all economically",
+ps.header(fig,"Auction concentration matters statistically, and barely at all economically",
           "Each point is one security; the outcome divides out the scope effect, so this is not the identity "
           "RS/CC=(RS/OC)×(OC/CC).\nThe slope is significant (p = 2e-4) but the median ratio moves only "
           "1.01→1.06 across the full range. Note panel B's axis.", top=0.82)

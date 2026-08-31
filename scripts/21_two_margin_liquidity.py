@@ -114,7 +114,7 @@ for _,r in g.iterrows():
                 xytext=(5,5),fontsize=7,color=ps.INK_SOFT)
 ps.finish(ax,"B. Failure against the extensive margin",None,
           "Participation rate (% of sessions traded)","P(H = L), %")
-ps.header(fig,"Figure 21.  Liquidity has two margins, and the paper had measured only one",
+ps.header(fig,"Liquidity has two margins, and the paper had measured only one",
           "Every earlier statistic used trade count on days a security APPEARS — the intensive margin. "
           "Participation,\nthe extensive margin, was invisible: the thinnest bucket trades on 19.5% of sessions, "
           "once when it does.",top=0.82)

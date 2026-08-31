@@ -54,8 +54,12 @@ b=d[d.r_co.abs()>1e-12]
 ax.hist(b.r_co.clip(-0.05,0.05)*100,bins=200,color=ps.SERIES["blue"],edgecolor=ps.SURFACE,linewidth=0.2)
 for x in (-2,2):
     ax.axvline(x,color=ps.SERIES["red"],ls="--",lw=1.4)
-ax.annotate("±2% pre-open band",(2.05,ax.get_ylim()[1]*0.75),fontsize=8,color=ps.SERIES["red"],fontweight="bold")
-ps.finish(ax,"A. Opening return is censored at ±2%",None,"ln(Open / prev Close), %","Stock-days")
+for x in (-5,5):                       # band widened to +/-5% on 2026-04-20; both regimes are plotted
+    ax.axvline(x,color=ps.INK_MUTED,ls=":",lw=1.0)
+ax.annotate("±2% band\n(to Apr 2026)",(2.15,ax.get_ylim()[1]*0.70),fontsize=7.5,
+            color=ps.SERIES["red"],fontweight="bold")
+ax.annotate("±5%\nfrom\nApr 2026",(-4.85,ax.get_ylim()[1]*0.55),fontsize=7,color=ps.INK_SOFT)
+ps.finish(ax,"A. Opening returns pile up at the pre-open band",None,"ln(Open / prev Close), %","Stock-days")
 
 ax=axes[1]
 ax.axhline(0,color=ps.INK_MUTED,lw=0.8)
@@ -64,19 +68,19 @@ ax.plot(t.median_trades,t.overnight_share_all*100,color=ps.SERIES["orange"],ls="
 ax.plot(t.median_trades,t.overnight_share_excl_degenerate*100,color=ps.SERIES["aqua"],ls="-",marker="o",
         markeredgecolor=ps.SURFACE,markeredgewidth=0.9,label="excluding H=L days")
 ax.set_xscale("log"); ps.plain_log_axis(ax,"x"); ax.legend(fontsize=7.5)
-ax.annotate("gap = mechanical:\nO=H=L=C forces intraday return to 0",(t.median_trades.iloc[0]*1.4,60),
-            fontsize=7.2,color=ps.INK_SOFT)
+ax.annotate("The two series coincide: within ordinary equity\nthere are almost no H=L days to remove.",
+            (t.median_trades.iloc[0]*1.15,12),fontsize=7.2,color=ps.INK_SOFT)
 ps.finish(ax,"B. Opening share of variance",None,"Median trades/day (log)","Percent of daily variance")
 
 ax=axes[2]
 ax.plot(t.median_trades,t.pct_open_eq_prevclose,color=ps.SERIES["violet"],marker="v",
         markeredgecolor=ps.SURFACE,markeredgewidth=0.9,label="open = prev close (no match)")
 ax.plot(t.median_trades,t.pct_at_2pct_band,color=ps.SERIES["red"],marker="D",
-        markeredgecolor=ps.SURFACE,markeredgewidth=0.9,label="open pinned at ±2% band")
+        markeredgecolor=ps.SURFACE,markeredgewidth=0.9,label="open in (1.9%, 2.1%]")
 ax.set_xscale("log"); ps.plain_log_axis(ax,"x"); ax.legend(fontsize=7.5)
 ps.finish(ax,"C. Auction outcomes by liquidity",None,"Median trades/day (log)","Percent of stock-days")
-ps.header(fig,"Figure 15.  NEPSE's pre-open call auction is visible in the data, and it censors the opening return",
-          "Orders may be placed only within ±2% of the previous close; if none match, the open is set to the previous "
-          "close.\nBoth rules leave clear fingerprints, and both distort what a volatility estimator can observe.",top=0.84)
+ps.header(fig,"NEPSE's pre-open call auction is visible in the data",
+          "Orders may be placed only within a band of the previous close; if none match, the open is set to that close.\n"
+          "Both rules leave clear fingerprints. The band widened from ±2% to ±5% on 2026-04-20; both regimes are shown.",top=0.84)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig15_opening_auction.{e}")
 plt.close(fig); print("\nwrote fig15_opening_auction.png")

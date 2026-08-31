@@ -105,11 +105,13 @@ for ax, col, ylab, ttl, fmt in [
     ps.finish(ax, ttl, None, None, ylab)
 
 axA.legend(fontsize=7.5, loc="upper right", frameon=False)
-axA.annotate("59.6% — the paper's\noriginal headline", (1, pf.p_hl.iloc[0]),
+# Both labels are read off the data, never typed: an earlier draft carried a hardcoded
+# "59.6%" that survived the OHLC-repair rebuild and contradicted its own panel.
+axA.annotate(f"{pf.p_hl.iloc[0]:.1%}", (1, pf.p_hl.iloc[0]),
              textcoords="offset points", xytext=(16, -6), fontsize=7.2,
              color=ps.SERIES["orange"], fontweight="bold")
-axA.annotate("1.3%", (1, pe.p_hl.iloc[0]), textcoords="offset points", xytext=(8, 8),
-             fontsize=7.2, color=ps.SERIES["blue"], fontweight="bold")
+axA.annotate(f"{pe.p_hl.iloc[0]:.1%}", (1, pe.p_hl.iloc[0]), textcoords="offset points",
+             xytext=(8, 8), fontsize=7.2, color=ps.SERIES["blue"], fontweight="bold")
 
 bottom = np.zeros(len(share))
 for t in TYPES:
@@ -137,7 +139,7 @@ axC.annotate("ordinary equities in the quintile", xy=(0.5, 0), xycoords="axes fr
              xytext=(0, -47), textcoords="offset points", ha="center", va="top",
              fontsize=7.4, color=ps.INK_SOFT, annotation_clip=False)
 
-ps.header(fig, "Figure 21.  A frontier liquidity gradient that is really an asset-class gradient",
+ps.header(fig, "A frontier liquidity gradient that is really an asset-class gradient",
           "NEPSE publishes one daily file for every listed instrument and no instrument-type field. Sorting it by\n"
           "trading intensity yields a strong, clean, spurious gradient: the thin end is debentures, closed-end funds\n"
           "and restricted promoter shares. Within ordinary equity the gradient is absent.", top=0.775)

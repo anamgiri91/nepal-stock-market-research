@@ -72,9 +72,13 @@ for nm,key,colr,mk in [("Parkinson","Parkinson/OC",ps.SERIES["orange"],"s"),
             markeredgecolor=ps.SURFACE,markeredgewidth=1.0,label=nm)
 for key,colr,lab in [("RS/OC",ps.SERIES["yellow"],"RS"),("AddRS/OC",ps.SERIES["aqua"],"AddRS")]:
     ax.axhline(nif[key],color=colr,ls=":",lw=1.2)
-ax.annotate("NIFTY 50 reference lines",(sub.median_trades.max(),nif["AddRS/OC"]),
-            textcoords="offset points",xytext=(-6,7),ha="right",fontsize=7,color=ps.INK_SOFT)
-ax.set_xscale("log"); ps.plain_log_axis(ax,"x"); ax.legend(fontsize=7.5,loc="lower right")
+ax.annotate("NIFTY 50 reference lines",(sub.median_trades.min(),nif["AddRS/OC"]),
+            textcoords="offset points",xytext=(2,5),ha="left",fontsize=7,color=ps.INK_SOFT,
+            bbox=dict(fc=ps.SURFACE,ec="none",pad=1.2))
+ax.set_xscale("log"); ps.plain_log_axis(ax,"x")
+ax.set_xticks([30,100,300])   # a lone "100" left the decade axis unreadable
+ax.legend(fontsize=7.5,loc="upper right",frameon=True,facecolor=ps.SURFACE,
+          edgecolor="none",framealpha=0.95)
 ps.finish(ax,"A. Does the correction hold as trading thins?",None,
           "Median trades per day (log)","Estimator ÷ open-to-close")
 ax=axes[1]
@@ -82,9 +86,11 @@ ax.plot(sub.median_trades,sub["RS==0 %"],color=ps.SERIES["yellow"],marker="D",ms
         markeredgecolor=ps.SURFACE,markeredgewidth=1.0,label="RS exactly zero")
 ax.plot(sub.median_trades,sub["P(H=L) %"],color=ps.SERIES["violet"],marker="v",ms=7,
         markeredgecolor=ps.SURFACE,markeredgewidth=1.0,label="H = L (zero range)")
-ax.set_xscale("log"); ps.plain_log_axis(ax,"x"); ax.legend(fontsize=7.5)
+ax.set_xscale("log"); ps.plain_log_axis(ax,"x")
+ax.set_xticks([30,100,300])
+ax.legend(fontsize=7.5)
 ps.finish(ax,"B. What AddRS is repairing",None,"Median trades per day (log)","Percent of stock-days")
-ps.header(fig,"Figure 18.  AddRS against Rogers–Satchell across the liquidity range",
+ps.header(fig,"AddRS against Rogers–Satchell across the liquidity range",
           "AddRS substitutes the squared open-to-close return whenever the observed extremes coincide with "
           "the open and close.\nPanel B shows the gap it targets: RS is exactly zero far more often than the "
           "range is degenerate.",top=0.82)

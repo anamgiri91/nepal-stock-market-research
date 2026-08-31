@@ -73,7 +73,7 @@ for sq, ax, ttl in [(False, axes[0], "A. Returns"), (True, axes[1], "B. Squared 
 axes[0].legend(loc="lower right", fontsize=7.5)
 axes[0].text(NLAG*0.98, 1.96/np.sqrt(int(cnt.median()))*1.15, "95% band", ha="right",
              fontsize=7, color=ps.INK_SOFT)
-ps.header(fig, "Figure 9.  Autocorrelation structure by liquidity",
+ps.header(fig, "Autocorrelation structure by liquidity",
           "Mean per-security ACF within each liquidity third. Thin stocks show strong negative "
           "first-order return\nautocorrelation (bid-ask bounce) and weaker volatility persistence.", top=0.82)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig9_acf.{e}")
@@ -100,7 +100,7 @@ for ax, col, lbl, colr in [(axes[0],"abs_ret","Mean |return|",ps.SERIES["blue"])
                 ha="center", va="bottom", fontsize=7, color=ps.INK_SOFT)
     ax.margins(y=0.18)
     ps.finish(ax, lbl, None, None, None)
-ps.header(fig, "Figure 10.  Calendar effects under a Sunday–Thursday week",
+ps.header(fig, "Calendar effects under a Sunday–Thursday week",
           "Sunday follows a two-day weekend; Thursday precedes it. Any annualization or "
           "overnight-return\nconvention borrowed from a Monday–Friday market misallocates this variance.", top=0.78)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig10_calendar.{e}")
@@ -156,7 +156,7 @@ for xi,v in zip(x+w/2, summ["garch_ok_pct"]):ax.text(xi,v,f"{v:.0f}",ha="center"
 ax.set_xticks(x); ax.set_xticklabels(["Thin","Middle","Liquid"]); ax.set_ylim(0,112)
 ax.legend(fontsize=7.5, loc="lower right")
 ps.finish(ax, "B. The model-based route stays available", None, None, "Percent of securities")
-ps.header(fig, "Figure 11.  The model-based route survives thin trading; the range route does not",
+ps.header(fig, "The model-based route survives thin trading; the range route does not",
           "Returns are non-Gaussian at every liquidity level (normality rejected for 100% of securities), "
           "and kurtosis is\nnot worst in thin stocks. GARCH(1,1) converges throughout — only ARCH "
           "detectability attenuates.", top=0.80)

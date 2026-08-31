@@ -77,7 +77,7 @@ thin=panel[panel.n_trades<=panel.n_trades.quantile(0.167)]
 dense=panel[panel.n_trades>=panel.n_trades.quantile(0.833)]
 
 rows=[decompose(nifty,"NIFTY 50 index"), decompose(nep,"NEPSE index"),
-      decompose(dense,"NEPSE stocks — dense",panel=True), decompose(thin,"NEPSE stocks — thin",panel=True)]
+      decompose(dense,"NEPSE equity — dense",panel=True), decompose(thin,"NEPSE equity — thin",panel=True)]
 t=pd.DataFrame(rows).set_index("market")
 t.to_csv(TAB/"table18_benchmark_diagnosis.csv")
 print("Where does the reported Rogers-Satchell 'bias' come from?")
@@ -107,7 +107,7 @@ for i,v in enumerate(t["Var(open) /Var(cc)"]*100):
 ax.set_xticks(ix); ax.set_xticklabels([s.replace(" — ","\n") for s in t.index],fontsize=7.5)
 ax.margins(y=0.2)
 ps.finish(ax,"B. Var(opening return) ÷ Var(close-to-close)",None,None,"Percent")
-ps.header(fig,"Figure 14.  Rogers-Satchell cannot see the overnight gap, so a close-to-close benchmark conflates two effects",
+ps.header(fig,"Rogers-Satchell cannot see the overnight gap, so a close-to-close benchmark conflates two effects",
           "RS is built from open, high, low and close within the session, so comparing it to close-to-close variance\n"
           "mixes estimator error with variation occurring outside the session. Panel B is a ratio, not a share: "
           "Var(cc)=Var(co)+Var(oc)+2Cov.",top=0.82)

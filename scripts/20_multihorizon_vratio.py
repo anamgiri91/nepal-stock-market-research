@@ -149,7 +149,7 @@ for cbl in ov.columns:
             lo,hi=band[(cbl,K)]; ax.plot([K,K],[lo,hi],color=cols.get(cbl),lw=2.4,alpha=.35,solid_capstyle="butt")
 ax.legend(fontsize=7.5,ncol=2)
 ps.finish(ax,None,None,"Bar length K (consecutive sessions)","RS_K ÷ Var(x_K)")
-ps.header(fig,"Figure 20.  Horizon behaviour of the variance ratio",
+ps.header(fig,"Horizon behaviour of the variance ratio",
           "Overlapping rolling windows, buckets fixed per security, every bar asserted to span K consecutive\n"
           "sessions. Vertical bars are block-bootstrap 95% intervals at K=1 and K=20 — overlapping windows\n"
           "raise the bar count but not the information.",top=0.80)

@@ -138,15 +138,15 @@ for t, lbl in [(10,"10"), (30,"30"), (100,"100")]:
     s = (p["n_trades"] <= t).mean()*100
     ax.plot([t],[s], marker="o", ms=5, color=ps.SERIES["orange"], zorder=5,
             markeredgecolor=ps.SURFACE, markeredgewidth=1.2)
-    ax.annotate(f"{s:.0f}% below {lbl}", (t, s), textcoords="offset points",
+    ax.annotate(f"{s:.0f}% at or below {lbl}", (t, s), textcoords="offset points",
                 xytext=(10, -12), fontsize=7.5, color=ps.INK_SOFT,
                 bbox=dict(fc=ps.SURFACE, ec="none", pad=1.2))
 ax.set_ylim(0, 100)
 ps.finish(ax, "B. Cumulative share of stock-days", None, "Trades per day (log scale)", "Percent at or below")
 
 ps.header(fig,
-    "Figure 1.  NEPSE trades too thinly for range-based estimators to observe a price path",
-    f"{len(p):,} stock-days · {p['symbol'].nunique()} securities · "
+    "Trading intensity in the pooled universe, before any instrument filter",
+    f"Every listed instrument type · {len(p):,} stock-days · {p['symbol'].nunique()} securities · "
     f"{p['date'].min().date()} to {p['date'].max().date()}", top=0.86)
 for ext in ("png","pdf"): fig.savefig(FIG / f"fig1_trading_intensity.{ext}")
 plt.close(fig)
@@ -173,9 +173,12 @@ for col, lbl, key in [("pk_zero","Parkinson variance = 0","Parkinson"),
 ax.set_xscale("log")
 ps.plain_log_axis(ax, "x")
 ps.finish(ax, None, None, "Median trades per day in decile (log scale)", "Percent of stock-days")
-ps.header(fig, "Figure 5.  Estimator failure is a function of trading intensity",
-          "Share of stock-days on which each estimator returns a degenerate value, by liquidity decile",
-          top=0.82)
+# Header text is wrapped by hand: savefig runs with bbox_inches="tight", so a line
+# wider than the axes silently widens the saved canvas and strands the plot in whitespace.
+ps.header(fig, "Degenerate estimator values, by liquidity decile",
+          "Pooled universe, every instrument type. The gradient is a composition\n"
+          "artifact (Figure 1); within ordinary equity it is absent.",
+          top=0.80)
 for ext in ("png","pdf"): fig.savefig(FIG / f"fig5_pathologies.{ext}")
 plt.close(fig)
 print(f"wrote {FIG/'fig5_pathologies.png'}")

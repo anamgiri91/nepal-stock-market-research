@@ -100,7 +100,7 @@ ax.set_ylim(0.3, 1.12)
 ax.legend(loc="lower right", ncol=1, fontsize=7.5)
 ps.finish(ax, None, None, "Median trades per day in bucket (log scale)",
           r"Range estimator ÷ open-to-close benchmark")
-ps.header(fig, "Figure 4.  Predicted at the extremes, divergent in the middle",
+ps.header(fig, "Predicted at the extremes, divergent in the middle",
           f"NEPSE stock-days in {NB} liquidity buckets ({len(p):,} obs). Lines = simulated undersampling "
           "prediction; markers = observed.\nNothing is fitted to NEPSE. The middle-range gap is the "
           "signature of a friction the prediction omits.", top=0.80)

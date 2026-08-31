@@ -128,7 +128,7 @@ ax.plot(g7["n"], g7["ac1_sq"], color=c2, ls=ls2, marker=mk2,
 ax.set_xscale("log"); ps.plain_log_axis(ax,"x")
 ps.finish(ax, "B. Lag-1 autocorrelation of squared returns", None,
           "Median trades/day (log)", "Autocorrelation")
-ps.header(fig, "Figure 7.  Thin stocks show the autocorrelation signature of bid-ask bounce",
+ps.header(fig, "Thin stocks show the autocorrelation signature of bid-ask bounce",
           "Per-security estimates, grouped into eight liquidity octiles. Volatility clustering (B) "
           "strengthens with liquidity.", top=0.84)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig7_autocorrelation.{e}")
@@ -156,7 +156,7 @@ ax.annotate(f"slope {m1.params['bounce']:.2f}  (t = {m1.tvalues['bounce']:.1f})"
             bbox=dict(fc=ps.SURFACE, ec="none", pad=1.5))
 ps.finish(ax, "B. Bounce explains the unexplained gap", None,
           "Bid-ask bounce  (−AC₁ of returns)", "Observed − predicted ratio")
-ps.header(fig, "Figure 8.  The upward friction, measured rather than inferred",
+ps.header(fig, "The upward friction, measured rather than inferred",
           "Each point is one security (n = 371). The gap Figure 4 leaves unexplained rises with "
           "directly measured\nbid-ask bounce, holding trading intensity fixed. R² rises 0.013 → 0.139.", top=0.82)
 for e in ("png","pdf"): fig.savefig(FIG/f"fig8_spread_explains_gap.{e}")
